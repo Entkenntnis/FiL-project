@@ -27,9 +27,6 @@ def numLeaves : Tree23 α  → ℕ
 | node2 l _ r => numLeaves l + numLeaves r
 | node3 l _ m _ r => numLeaves l + numLeaves m + numLeaves r
 
-lemma num_leaves_nodes_plus_1 (t : Tree23 α) :
-    numNodes t = numLeaves t + 1 := by sorry
-
 def height : Tree23 α  → ℕ
 | nil => 0
 | node2 l _ r => max (height l) (height r) + 1
@@ -51,3 +48,36 @@ lemma complete_height_numNodes (t : Tree23 α) :
   | nil => intro h; rfl
   | node2 l a r ihl ihr  => grind[complete, height, numNodes]
   | node3 l a m b r ihl ihm ihr => grind[complete, height, numNodes]
+
+-- Exercise 7.1
+def maxt : ℕ → Tree23 Unit
+| .zero => Tree23.nil
+| .succ n => Tree23.node3 (maxt n) () (maxt n) () (maxt n)
+
+#eval numLeaves (maxt 3)
+
+lemma numNodes_maxt (t : Tree23 α) (n : ℕ) :
+    numNodes (maxt n) = (((3 : ℝ) ^ (n : ℝ))- 1) / 2 := by
+  induction n with
+  | zero => norm_num
+  | succ n ih =>
+    unfold maxt
+    unfold numNodes
+    simp
+    rw[ih]
+    have : 2 * ((3 ^ ↑n - 1) / 2 + (3 ^ ↑n - 1) / 2 + (3 ^ ↑n - 1) / 2 + 1) = 2 * ((3 ^ (↑n + 1) - 1) / 2) := by
+      -- field_simp [two_ne_zero]
+      sorry
+    sorry
+    --rw[← (mul_right_inj (2: ℝ))]
+    -- apply_fun (· * 2)
+    -- simp
+    -- ring_nf
+    -- sorry
+    -- apply?
+
+
+    --norm_num
+
+#check congr_arg
+#check mul_right_inj
