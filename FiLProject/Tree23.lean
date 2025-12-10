@@ -73,7 +73,7 @@ lemma numNodes_maxt (n : ℕ) :
       grind
     exact mul_left_cancel₀ (by norm_num : (2 : ℝ) ≠ 0) h_mul
 
-lemma height_maxt (n : ℕ) (t : Tree23 α) :
+lemma height_maxt_helper (t : Tree23 α) :
     (numNodes t) * 2 + 1 ≤ 3 ^ (height t) := by
   induction t with
   | nil => grind[numNodes, height]
@@ -82,36 +82,18 @@ lemma height_maxt (n : ℕ) (t : Tree23 α) :
     unfold height
     ring_nf
     have h1 : 3 ^ r.height ≤ 3 ^ max l.height r.height := by
-      by_cases r.height > l.height
-      case pos => grind
-      case neg =>
-        expose_names
-        push_neg at h
-        refine Nat.pow_le_pow_right ?_ ?_
-        · norm_num
-        · grind
+      refine Nat.pow_le_pow_right ?_ ?_ <;> grind
     have h2 : 3 ^ l.height ≤ 3 ^ max l.height r.height := by
-      by_cases l.height > r.height
-      case pos => grind
-      case neg =>
-        expose_names
-        push_neg at h
-        refine Nat.pow_le_pow_right ?_ ?_
-        · norm_num
-        · grind
+      refine Nat.pow_le_pow_right ?_ ?_ <;> grind
     grind
   | node3 l a m b r ihl ihm ihr =>
     unfold numNodes
     unfold height
     ring_nf
-    have h2 : 3 ^ l.height ≤ 3 ^ max l.height (max m.height r.height):= by
-      by_cases l.height > r.height
-      case pos => sorry
-      case neg =>
-        sorry
-        -- expose_names
-        -- push_neg at h
-        -- refine Nat.pow_le_pow_right ?_ ?_
-        -- · norm_num
-        -- · grind
-    sorry
+    have h1 : 3 ^ l.height ≤ 3 ^ max l.height (max m.height r.height):= by
+      refine Nat.pow_le_pow_right ?_ ?_ <;> grind
+    have h2 : 3 ^ m.height ≤ 3 ^ max l.height (max m.height r.height):= by
+      refine Nat.pow_le_pow_right ?_ ?_ <;> grind
+    have h3 : 3 ^ r.height ≤ 3 ^ max l.height (max m.height r.height):= by
+      refine Nat.pow_le_pow_right ?_ ?_ <;> grind
+    grind
