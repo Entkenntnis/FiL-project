@@ -49,16 +49,5 @@ lemma complete_height_numNodes (t : Tree23 α) :
     complete t → 2 ^ (height t) ≤ numNodes t + 1 := by
   induction t with
   | nil => intro h; rfl
-  | node2 l a r ihl ihr  =>
-    intro h
-    unfold complete at h
-    simp at h
-    obtain ⟨hheight, hl, hr⟩ := h
-    specialize ihr hr
-    specialize ihl hl
-    unfold height
-    unfold numNodes
-    have h1 : 2 ^ l.height + 2 ^ r.height ≤ l.numNodes + r.numNodes + 1 + 1 := by grind
-    have h2 : 2 ^ ((max l.height r.height) + 1) ≤ 2 ^ l.height + 2 ^ r.height := by grind
-    grind
-  | node3 _ _ _ _ _ _ _ _ => sorry
+  | node2 l a r ihl ihr  => grind[complete, height, numNodes]
+  | node3 l a m b r ihl ihm ihr => grind[complete, height, numNodes]
