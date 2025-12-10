@@ -56,7 +56,7 @@ def maxt : ℕ → Tree23 Unit
 
 #eval numLeaves (maxt 3)
 
-lemma numNodes_maxt (t : Tree23 α) (n : ℕ) :
+lemma numNodes_maxt (n : ℕ) :
     numNodes (maxt n) = (((3 : ℝ) ^ (n : ℝ))- 1) / 2 := by
   induction n with
   | zero => norm_num
@@ -65,19 +65,10 @@ lemma numNodes_maxt (t : Tree23 α) (n : ℕ) :
     unfold numNodes
     simp
     rw[ih]
-    have : 2 * ((3 ^ ↑n - 1) / 2 + (3 ^ ↑n - 1) / 2 + (3 ^ ↑n - 1) / 2 + 1) = 2 * ((3 ^ (↑n + 1) - 1) / 2) := by
-      -- field_simp [two_ne_zero]
-      sorry
-    sorry
-    --rw[← (mul_right_inj (2: ℝ))]
-    -- apply_fun (· * 2)
-    -- simp
-    -- ring_nf
-    -- sorry
-    -- apply?
-
-
-    --norm_num
-
-#check congr_arg
-#check mul_right_inj
+    have h_mul : 2 * (((3 : ℝ) ^ (n : ℝ) - 1) / 2 + (3 ^ (n : ℝ) - 1) / 2 + (3 ^ (n : ℝ) - 1) / 2 + 1) = 2 * ((3 ^ ((n : ℝ) + 1) - 1) / 2) := by
+      ring_nf
+      simp only [add_right_inj]
+      rw [Real.rpow_add (by norm_num : (3 : ℝ) > 0)]
+      simp
+      grind
+    exact mul_left_cancel₀ (by norm_num : (2 : ℝ) ≠ 0) h_mul
