@@ -97,3 +97,18 @@ lemma height_maxt_helper (t : Tree23 α) :
     have h3 : 3 ^ r.height ≤ 3 ^ max l.height (max m.height r.height):= by
       refine Nat.pow_le_pow_right ?_ ?_ <;> grind
     grind
+
+lemma height_maxt (t : Tree23 α) :
+    numNodes t ≤ ((3: ℝ) ^ (height t) - 1) / 2 := by
+  obtain h := height_maxt_helper t
+  rify at h
+  have h2 : (2:ℝ) * (t.numNodes: ℝ) ≤ (2:ℝ) * ((3 ^ t.height - 1) / 2) := by
+    have : (2:ℝ) * ((3 ^ t.height - 1) / 2) = (3 ^ t.height - 1) := by grind
+    rw [this]
+    have h3 : 1 + 2 * (t.numNodes: ℝ) ≤ 1 + (3 ^ t.height - 1) := by
+      simp
+      rw[add_comm]
+      rw[mul_comm]
+      exact h
+    exact @le_of_add_le_add_left ℝ _ _ _ 1 _ _ h3
+  exact le_of_mul_le_mul_left h2 (by simp : (0: ℝ) < (2:ℝ))
