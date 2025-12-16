@@ -11,7 +11,7 @@ namespace Tree23
 
 universe u
 
-variable {α : Type u}
+variable {α : Type u} [LinearOrder α]
 
 #print Tree23.nil
 #eval Tree23.node2 (Tree23.nil) 2 (Tree23.nil)
@@ -112,3 +112,15 @@ lemma height_maxt (t : Tree23 α) :
       exact h
     exact @le_of_add_le_add_left ℝ _ _ _ 1 _ _ h3
   exact le_of_mul_le_mul_left h2 (by simp : (0: ℝ) < (2:ℝ))
+
+
+-- Chapter 7.1
+
+def isin : Tree23 α → α → Bool
+| nil,  _ => false
+| node2 l a r,  x => if x < a then (isin l x) else
+                            if x = a then true else (isin r x)
+| node3 l a m b r, x => if x < a then (isin l x) else
+                            if x = a then true else
+                              if x < b then (isin m x) else
+                                if x = b then true else (isin r x)
