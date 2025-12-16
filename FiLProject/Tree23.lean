@@ -142,7 +142,7 @@ def ins : α → Tree23 α → InsertUp α
                     else
                       match ins x r with
                       | InsertUp.eq r' => InsertUp.eq (Tree23.node2 l a r')
-                      | InsertUp.overflow r₁ b r₂ => InsertUp.eq (Tree23.node3 l b r₁ a r₂)
+                      | InsertUp.overflow r₁ b r₂ => InsertUp.eq (Tree23.node3 l a r₁ b r₂)
 | x, node3 l a m b r => if x < a then
                           match ins x l with
                           | InsertUp.eq l' => InsertUp.eq (Tree23.node3 l' a m b r)
@@ -167,3 +167,18 @@ def insertTree : InsertUp α → Tree23 α
 
 def insert (x : α) (t : Tree23 α) : Tree23 α :=
   insertTree (ins x t)
+
+def insertHeigth : InsertUp α → ℕ
+| InsertUp.eq t => height t
+| InsertUp.overflow l _ _ => height l
+
+lemma insert_preservation_completeness_helper (t : Tree23 α ) (a : α):
+    complete t → complete (insertTree (ins a t)) ∧ insertHeigth (ins a t) = height t := by
+  induction t with
+  | nil =>
+    intro h
+    constructor
+    · grind[insertTree, insertHeigth, complete, ins]
+    · grind[insertTree, insertHeigth, complete, ins]
+  | node2 _ _ _ _ _ => sorry
+  | node3 _ _ _ _ _ _ _ _ => sorry
