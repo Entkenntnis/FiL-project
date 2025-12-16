@@ -124,3 +124,46 @@ def isin : Tree23 α → α → Bool
                             if x = a then true else
                               if x < b then (isin m x) else
                                 if x = b then true else (isin r x)
+
+#eval isin (Tree23.node3 (Tree23.node2 (Tree23.nil) 1 (Tree23.nil)) 2 (Tree23.nil) 3 (Tree23.nil)) 1
+
+inductive InsertUp : Type u → Type u where
+| eq {α : Type u} : Tree23 α → InsertUp α
+| overflow {α : Type u} : (Tree23 α) → α → (Tree23 α) → InsertUp α
+
+def ins : α → Tree23 α → InsertUp α
+| x, nil => InsertUp.overflow (Tree23.nil) x (Tree23.nil)
+| x, node2 l a r => if x < a then
+                      match ins x l with
+                      | InsertUp.eq l' => InsertUp.eq (Tree23.node2 l' a r)
+                      | InsertUp.overflow l₁ b l₂ => InsertUp.eq (Tree23.node3 l₁ b l₂ a r)
+                    else if x = a then
+                      InsertUp.eq (Tree23.node2 l a r)
+                    else
+                      match ins x r with
+                      | InsertUp.eq r' => InsertUp.eq (Tree23.node2 l a r')
+                      | InsertUp.overflow r₁ b r₂ => InsertUp.eq (Tree23.node3 l b r₁ a r₂)
+| x, node3 l a m b r => if x < a then
+                          match ins x l with
+                          | InsertUp.eq l' => InsertUp.eq (Tree23.node3 l' a m b r)
+                          | InsertUp.overflow l₁ c l₂ => InsertUp.overflow (Tree23.node2 l₁ c l₂) a (Tree23.node2 m b r)
+                        else if x = a then
+                          InsertUp.eq (Tree23.node3 l a m b r)
+                        else
+                          if x < b then
+                          match ins x m with
+                          | InsertUp.eq m' => InsertUp.eq (Tree23.node3 l a m' b r)
+                          | InsertUp.overflow m₁ c m₂ => InsertUp.overflow (Tree23.node2 l a m₁) c (Tree23.node2 m₂ b r)
+                          else if x = b then
+                            InsertUp.eq (Tree23.node3 l a m b r)
+                          else
+                            match ins x r with
+                            | InsertUp.eq r' => InsertUp.eq (Tree23.node3 l a m b r')
+                            | InsertUp.overflow r₁ c r₂ => InsertUp.overflow (Tree23.node2 l a m) c (Tree23.node2 r₁ b r₂)
+
+def insertTree : InsertUp α → Tree23 α
+| InsertUp.eq t => t
+| InsertUp.overflow l a r => Tree23.node2 l a r
+
+def insert (x : α) (t : Tree23 α) : Tree23 α :=
+  insertTree (ins x t)
