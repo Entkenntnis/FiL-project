@@ -1,9 +1,9 @@
 import Mathlib.Tactic
 
-inductive Tree23.{u} (α : Type u) : Type u
-| nil : Tree23 α
-| node2 : (Tree23 α) → α → (Tree23 α) → (Tree23 α)
-| node3 : (Tree23 α) → α → (Tree23 α) → α → (Tree23 α) → (Tree23 α)
+inductive Tree23 (α : Type u)
+| nil
+| node2 (l : Tree23 α) (a : α) (r : Tree23 α)
+| node3 (l : Tree23 α) (a : α) (m : Tree23 α) (a : α) (r : Tree23 α)
 deriving DecidableEq, Repr
 compile_inductive% Tree23
 
@@ -42,6 +42,7 @@ def complete : Tree23 α  → Bool
 | node2 l _ r => height l = height r ∧ complete l ∧ complete r
 | node3 l _ m _ r => height l = height m ∧ height m = height r ∧ complete l ∧ complete m ∧ complete r
 
+omit [LinearOrder α] in
 lemma complete_height_numNodes (t : Tree23 α) :
     complete t → 2 ^ (height t) ≤ numNodes t + 1 := by
   induction t with
@@ -73,6 +74,7 @@ lemma numNodes_maxt (n : ℕ) :
       grind
     exact mul_left_cancel₀ (by norm_num : (2 : ℝ) ≠ 0) h_mul
 
+omit [LinearOrder α] in
 lemma height_maxt_helper (t : Tree23 α) :
     (numNodes t) * 2 + 1 ≤ 3 ^ (height t) := by
   induction t with
@@ -98,6 +100,7 @@ lemma height_maxt_helper (t : Tree23 α) :
       refine Nat.pow_le_pow_right ?_ ?_ <;> grind
     grind
 
+omit [LinearOrder α] in
 lemma height_maxt (t : Tree23 α) :
     numNodes t ≤ ((3: ℝ) ^ (height t) - 1) / 2 := by
   obtain h := height_maxt_helper t
@@ -127,9 +130,9 @@ def isin : Tree23 α → α → Bool
 
 #eval isin (Tree23.node3 (Tree23.node2 (Tree23.nil) 1 (Tree23.nil)) 2 (Tree23.nil) 3 (Tree23.nil)) 1
 
-inductive InsertUp : Type u → Type u where
-| eq {α : Type u} : Tree23 α → InsertUp α
-| overflow {α : Type u} : (Tree23 α) → α → (Tree23 α) → InsertUp α
+inductive InsertUp (α : Type u) where
+| eq (t: Tree23 α)
+| overflow (l: Tree23 α) (a: α)  (r: Tree23 α)
 
 def ins : α → Tree23 α → InsertUp α
 | x, nil => InsertUp.overflow (Tree23.nil) x (Tree23.nil)
@@ -175,10 +178,6 @@ def insertHeigth : InsertUp α → ℕ
 lemma insert_preservation_completeness_helper (t : Tree23 α ) (a : α):
     complete t → complete (insertTree (ins a t)) ∧ insertHeigth (ins a t) = height t := by
   induction t with
-  | nil =>
-    intro h
-    constructor
-    · grind[insertTree, insertHeigth, complete, ins]
-    · grind[insertTree, insertHeigth, complete, ins]
-  | node2 _ _ _ _ _ => sorry
-  | node3 _ _ _ _ _ _ _ _ => sorry
+  | nil => grind[insertTree, insertHeigth, complete, ins]
+  | node2 _ _ _ _ _ => grind [insertTree, ins, complete, insertHeigth, height]
+  | node3 _ _ _ _ _ _ _ _ => grind [insertTree, ins, complete, insertHeigth, height]
