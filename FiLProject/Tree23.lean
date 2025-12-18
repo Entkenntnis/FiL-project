@@ -213,6 +213,24 @@ lemma height_pos_not_nil (t : Tree23 α) :
   | node2 l a r l_ih r_ih => grind[height]
   | node3 l a m a r l_ih m_ih r_ih => grind[height]
 
+def setTree : (t : Tree23 α) → Set α
+| Tree23.nil => ∅
+| Tree23.node2 l a r => (setTree l) ∪ {a} ∪ (setTree r)
+| Tree23.node3 l a m b r => (setTree l) ∪ {a} ∪ (setTree m) ∪ {b} ∪ (setTree r)
+
+def searchTree : (t : Tree23 α) → Prop
+| Tree23.nil => True
+| Tree23.node2 l a r => (∀ x ∈ (setTree l), x < a) ∧ (∀ x ∈ (setTree r), a < x) ∧ searchTree l ∧ searchTree r
+| Tree23.node3 l a m  b r =>
+  a < b ∧
+  (∀ x ∈ (setTree l), x < a) ∧ (∀ x ∈ (setTree m), a < x) ∧
+  (∀ x ∈ (setTree m), x < b) ∧ (∀ x ∈ (setTree r), b < x) ∧
+  searchTree l ∧ searchTree m ∧ searchTree r
+
+
+
+
+
 
 --deletion
 inductive DeleteUp (α : Type u) where
