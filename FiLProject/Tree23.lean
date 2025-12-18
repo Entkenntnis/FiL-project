@@ -130,6 +130,7 @@ def isin : Tree23 α → α → Bool
 
 #eval isin (Tree23.node3 (Tree23.node2 (Tree23.nil) 1 (Tree23.nil)) 2 (Tree23.nil) 3 (Tree23.nil)) 1
 
+--insertion
 inductive InsertUp (α : Type u) where
 | eq (t: Tree23 α)
 | overflow (l: Tree23 α) (a: α)  (r: Tree23 α)
@@ -181,3 +182,85 @@ lemma insert_preservation_completeness_helper (t : Tree23 α ) (a : α):
   | nil => grind[insertTree, insertHeigth, complete, ins]
   | node2 _ _ _ _ _ => grind [insertTree, ins, complete, insertHeigth, height]
   | node3 _ _ _ _ _ _ _ _ => grind [insertTree, ins, complete, insertHeigth, height]
+
+lemma insert_preservation_completeness (t : Tree23 α ) (a : α):
+    complete t → complete (insert a t) := by
+  grind [insert_preservation_completeness_helper, insert]
+
+
+--deletion
+inductive DeleteUp (α : Type u) where
+| eq (t: Tree23 α)
+| underflow (t: Tree23 α)
+
+def deleteTree : DeleteUp α → Tree23 α
+| DeleteUp.eq t => t
+| DeleteUp.underflow t => t
+
+def node21 : DeleteUp α → α → Tree23 α → DeleteUp α
+| DeleteUp.underflow t, _, nil => DeleteUp.underflow t  -- this case should never occur
+| DeleteUp.eq t₁, a, t₂ => DeleteUp.eq (Tree23.node2 t₁ a t₂)
+| DeleteUp.underflow t₁, a, Tree23.node2 t₂ b t₃ => DeleteUp.underflow (Tree23.node3 t₁ a t₂ b t₃)
+| DeleteUp.underflow t₁, a, Tree23.node3 t₂ b t₃ c t₄ => DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node2 t₃ c t₄))
+
+def node22 : Tree23 α → α → DeleteUp α → DeleteUp α
+| nil, _, DeleteUp.underflow t => DeleteUp.underflow t  -- this case should never occur
+| t₁, a, DeleteUp.eq t₂ => DeleteUp.eq (Tree23.node2 t₁ a t₂)
+| Tree23.node2 t₁ b t₂, a, DeleteUp.underflow t₃ => DeleteUp.underflow (Tree23.node3 t₁ b t₂ a t₃)
+| Tree23.node3 t₁ b t₂ c t₃, a, DeleteUp.underflow t₄ => DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ b t₂) c (Tree23.node2 t₃ a t₄))
+
+def node31 : DeleteUp α → α → Tree23 α → α → Tree23 α → DeleteUp α
+| DeleteUp.eq t₁, a, t₂, b, t₃ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
+| DeleteUp.underflow t₁, a, Tree23.node2 t₂ b t₃, c, t₄ =>
+  DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node2 t₃ c t₄))
+| DeleteUp.underflow t₁, a, Tree23.node3 t₂ b m c t₄, d, t₅ =>
+  DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node3 m c t₄ d t₅))
+| DeleteUp.underflow t₁, a, t₂, b, t₃ => DeleteUp.underflow (Tree23.node2 (Tree23.node2 t₁ a t₂) b t₃) -- this case should never occur
+
+def node32 : Tree23 α → α → DeleteUp α → α → Tree23 α → DeleteUp α
+| t₁, a, DeleteUp.eq t₂, b, t₃ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
+| t₁, a, DeleteUp.underflow t₂, b, Tree23.node2 t₃ c t₄ =>
+  DeleteUp.eq (Tree23.node3 t₁ a (Tree23.node2 t₂ b t₃) c t₄)
+| t₁, a, DeleteUp.underflow t₂, b, Tree23.node3 t₃ c m d t₅ =>
+  DeleteUp.eq (Tree23.node3 t₁ a (Tree23.node2 t₂ b t₃) c (Tree23.node2 m d t₅))
+| t₁, a, DeleteUp.underflow t₂, b, t₃ => DeleteUp.underflow (Tree23.node2 t₁ a (Tree23.node2 t₂ b t₃)) -- this case should never occur
+
+def node33 : Tree23 α → α → Tree23 α → α → DeleteUp α → DeleteUp α
+| t₁, a, t₂, b, DeleteUp.eq t₃ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
+| t₁, a, Tree23.node2 t₂ b t₃, c, DeleteUp.underflow t₄ =>
+  DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node2 t₃ c t₄))
+| t₁, a, Tree23.node3 t₂ b m c t₄, d, DeleteUp.underflow t₅ =>
+  DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node3 m c t₄ d t₅))
+| t₁, a, t₂, b, DeleteUp.underflow t₃ => DeleteUp.underflow (Tree23.node2 t₁ a (Tree23.node2 t₂ b t₃)) -- this case should never occur
+
+
+
+
+
+def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp α
+| node2 nil a nil, _, _=> (a, DeleteUp.underflow nil)
+| node3 nil a nil b nil, _, _ => (a, DeleteUp.eq (Tree23.node2 nil b nil))
+| node2 l a r, _, _ => let (x, l') := splitMin l (by grind[complete]) (by sorry); (x, node21 l' a r)
+| node3 l a m b r, _ , _=> let (x, l') := splitMin l (by grind[complete]) (by sorry); (x, node31 l' a m b r)
+| nil, _, h => by grind[complete]
+
+
+def del : α → (t : Tree23 α) →  complete t → DeleteUp α
+| _, nil, h => DeleteUp.eq Tree23.nil
+| x, node2 nil a nil, _ => DeleteUp.eq nil
+| x, node2 l a r, h =>
+  if x < a then node21 (del x l (by grind[complete])) a r
+  else if x = a then
+    let (a0, r0) := splitMin r (by grind[complete]) (by sorry)
+    node22 l a0 r0
+  else node22 l a (del x r (by grind[complete]))
+| x, node3 l a m b r, h =>
+  if x < a then node31 (del x l (by grind[complete])) a m b r
+  else if x = a then
+    let (a0, m0) := splitMin m (by grind[complete]) (by sorry)
+    node32 l a0 m0 b r
+  else if x < b then node32 l a (del x m (by grind[complete])) b r
+  else if x = b then
+    let (b0, r0) := splitMin r (by grind[complete]) (by sorry)
+    node33 l a m b0 r0
+  else node33 l a m b (del x r (by grind[complete]))
