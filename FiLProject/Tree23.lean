@@ -187,6 +187,32 @@ lemma insert_preservation_completeness (t : Tree23 α ) (a : α):
     complete t → complete (insert a t) := by
   grind [insert_preservation_completeness_helper, insert]
 
+omit [LinearOrder α] in
+lemma height_zero_is_nil (t : Tree23 α) :
+    height t = 0 → t = Tree23.nil := by
+  induction t with
+  | nil => simp
+  | node2 l a r l_ih r_ih => grind[height]
+  | node3 l a m a r l_ih m_ih r_ih => grind[height]
+
+
+omit [LinearOrder α] in
+lemma not_nil_height_pos (t : Tree23 α) :
+    t ≠ nil → height t > 0 := by
+  induction t with
+  | nil => simp
+  | node2 l a r l_ih r_ih => grind[height]
+  | node3 l a m a r l_ih m_ih r_ih => grind[height]
+
+
+omit [LinearOrder α] in
+lemma height_pos_not_nil (t : Tree23 α) :
+    height t > 0 → t ≠ nil := by
+  induction t with
+  | nil => grind[height]
+  | node2 l a r l_ih r_ih => grind[height]
+  | node3 l a m a r l_ih m_ih r_ih => grind[height]
+
 
 --deletion
 inductive DeleteUp (α : Type u) where
@@ -197,18 +223,33 @@ def deleteTree : DeleteUp α → Tree23 α
 | DeleteUp.eq t => t
 | DeleteUp.underflow t => t
 
-def node21 : DeleteUp α → α → Tree23 α → DeleteUp α
-| DeleteUp.underflow t, _, nil => DeleteUp.underflow t  -- this case should never occur
-| DeleteUp.eq t₁, a, t₂ => DeleteUp.eq (Tree23.node2 t₁ a t₂)
-| DeleteUp.underflow t₁, a, Tree23.node2 t₂ b t₃ => DeleteUp.underflow (Tree23.node3 t₁ a t₂ b t₃)
-| DeleteUp.underflow t₁, a, Tree23.node3 t₂ b t₃ c t₄ => DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node2 t₃ c t₄))
+def node21 : DeleteUp α → α → (t: Tree23 α) → t ≠ nil → DeleteUp α
+| DeleteUp.eq t₁, a, t₂, _ => DeleteUp.eq (Tree23.node2 t₁ a t₂)
+| DeleteUp.underflow t₁, a, r, h =>
+    match r with
+    | nil => (by grind)
+    | node2 t₂ b t₃ =>
+      -- make sure that right side is also reduced in height by merging b into the node
+      -- and propagate underflow up
+      DeleteUp.underflow (Tree23.node3 t₁ a t₂ b t₃)
+    | node3 t₂ b t₃ c t₄ =>
+      -- fix left underflow by redistributing one element from node3 on the right sight to the top and
+      -- the top element to the left, making both sides equal height
+      DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node2 t₃ c t₄))
 
-def node22 : Tree23 α → α → DeleteUp α → DeleteUp α
-| nil, _, DeleteUp.underflow t => DeleteUp.underflow t  -- this case should never occur
-| t₁, a, DeleteUp.eq t₂ => DeleteUp.eq (Tree23.node2 t₁ a t₂)
-| Tree23.node2 t₁ b t₂, a, DeleteUp.underflow t₃ => DeleteUp.underflow (Tree23.node3 t₁ b t₂ a t₃)
-| Tree23.node3 t₁ b t₂ c t₃, a, DeleteUp.underflow t₄ => DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ b t₂) c (Tree23.node2 t₃ a t₄))
 
+def node22 : (t: Tree23 α) → α → DeleteUp α → t ≠ nil → DeleteUp α
+| t₁, a, DeleteUp.eq t₂, _ => DeleteUp.eq (Tree23.node2 t₁ a t₂)
+| l, a, DeleteUp.underflow t_r, h =>
+    match l with
+    | nil => (by grind)
+    | node2 t₁ b t₂ =>
+      DeleteUp.underflow (Tree23.node3 t₁ b t₂ a t_r)
+    | node3 t₁ b t₂ c t₃ =>
+      DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ b t₂) c (Tree23.node2 t₃ a t_r))
+
+
+-- TODO: rework to use exclude dead branches
 def node31 : DeleteUp α → α → Tree23 α → α → Tree23 α → DeleteUp α
 | DeleteUp.eq t₁, a, t₂, b, t₃ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
 | DeleteUp.underflow t₁, a, Tree23.node2 t₂ b t₃, c, t₄ =>
@@ -235,32 +276,73 @@ def node33 : Tree23 α → α → Tree23 α → α → DeleteUp α → DeleteUp 
 
 
 
-
-
 def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp α
-| node2 nil a nil, _, _=> (a, DeleteUp.underflow nil)
-| node3 nil a nil b nil, _, _ => (a, DeleteUp.eq (Tree23.node2 nil b nil))
-| node2 l a r, _, _ => let (x, l') := splitMin l (by grind[complete]) (by sorry); (x, node21 l' a r)
-| node3 l a m b r, _ , _=> let (x, l') := splitMin l (by grind[complete]) (by sorry); (x, node31 l' a m b r)
 | nil, _, h => by grind[complete]
+| node2 l a r, hc, _ =>
+  if h: l = nil then
+    (a, DeleteUp.underflow nil)
+  else
+    -- extract the smallest element merge reduced left side with right side
+    -- ah, that is why this is called splitMin ...
+    let (x, l') := splitMin l (by grind[complete]) (by assumption)
+    have hr : r ≠ nil := by grind[height_pos_not_nil, complete, not_nil_height_pos]
+    (a, node21 l' a r (by assumption))
+| node3 l a m b r, _, _ =>
+  -- ============ TODO =============
+  (a, DeleteUp.underflow Tree23.nil) -- PLACEHOLDER
+
+
+-- | node3 nil a nil b nil, _, _ => (a, DeleteUp.eq (Tree23.node2 nil b nil))
+-- | node3 l a m b r, _ , _=> let (x, l') := splitMin l (by grind[complete]) (by sorry); (x, node31 l' a m b r)
 
 
 def del : α → (t : Tree23 α) →  complete t → DeleteUp α
 | _, nil, h => DeleteUp.eq Tree23.nil
-| x, node2 nil a nil, _ => DeleteUp.eq nil
 | x, node2 l a r, h =>
-  if x < a then node21 (del x l (by grind[complete])) a r
-  else if x = a then
-    let (a0, r0) := splitMin r (by grind[complete]) (by sorry)
-    node22 l a0 r0
-  else node22 l a (del x r (by grind[complete]))
+  if hl: l = Tree23.nil then
+    -- l and r are both nil
+    if a = x then
+      -- delete a, the leaf becomes nil, we need to borrow, return underflow
+      DeleteUp.underflow Tree23.nil
+    else
+      -- no changes
+      DeleteUp.eq (Tree23.node2 Tree23.nil a Tree23.nil)
+  else
+    -- not leaf, so l and r are both not nil
+    have h2 : r ≠ nil := by grind[complete, not_nil_height_pos, height]
+
+    if (x < a) then
+      -- recursion on left subtree and handle underflow logic via node21
+      node21 (del x l (by grind[complete])) a r (by assumption)
+    else if (x = a) then
+      let (a0, r0) := splitMin r (by grind[complete]) (by assumption)
+      node22 l a0 r0 (by assumption)
+    else
+      -- recursion on right subtree and handle underflow logic via node22
+      node22 l a (del x r (by grind[complete])) (by assumption)
 | x, node3 l a m b r, h =>
-  if x < a then node31 (del x l (by grind[complete])) a m b r
-  else if x = a then
-    let (a0, m0) := splitMin m (by grind[complete]) (by sorry)
-    node32 l a0 m0 b r
-  else if x < b then node32 l a (del x m (by grind[complete])) b r
-  else if x = b then
-    let (b0, r0) := splitMin r (by grind[complete]) (by sorry)
-    node33 l a m b0 r0
-  else node33 l a m b (del x r (by grind[complete]))
+  if hl: l = Tree23.nil then
+    DeleteUp.eq (if x = a then
+      Tree23.node2 Tree23.nil b Tree23.nil
+    else if x = b then
+      Tree23.node2 Tree23.nil a Tree23.nil
+    else
+      Tree23.node3 Tree23.nil a Tree23.nil b Tree23.nil
+    )
+  else
+
+    -- ============ TODO =============
+    DeleteUp.eq Tree23.nil -- PLACEHOLDER
+
+
+
+
+  -- if x < a then node31 (del x l (by grind[complete])) a m b r
+  -- else if x = a then
+  --   let (a0, m0) := splitMin m (by grind[complete]) (by sorry)
+  --   node32 l a0 m0 b r
+  -- else if x < b then node32 l a (del x m (by grind[complete])) b r
+  -- else if x = b then
+  --   let (b0, r0) := splitMin r (by grind[complete]) (by sorry)
+  --   node33 l a m b0 r0
+  -- else node33 l a m b (del x r (by grind[complete]))
