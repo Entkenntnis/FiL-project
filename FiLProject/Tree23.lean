@@ -312,7 +312,6 @@ def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp �
     (a, node31 l' a m b r (by assumption) (by assumption))
 
 
-
 def del : α → (t : Tree23 α) →  complete t → DeleteUp α
 | _, nil, h => DeleteUp.eq Tree23.nil
 | x, node2 l a r, h =>
@@ -347,19 +346,34 @@ def del : α → (t : Tree23 α) →  complete t → DeleteUp α
       Tree23.node3 Tree23.nil a Tree23.nil b Tree23.nil
     )
   else
+    have hr : r ≠ nil := by grind[complete, not_nil_height_pos, height]
+    have hm : m ≠ nil := by grind[complete, not_nil_height_pos, height]
 
-    -- ============ TODO =============
-    DeleteUp.eq Tree23.nil -- PLACEHOLDER
+    if (x < a) then
+      node31 (del x l (by grind[complete])) a m b r (by assumption) (by assumption)
+    else if (x = a) then
+      let (a', m') := splitMin m (by grind[complete]) (by assumption)
+      node32 l a' m' b r (by assumption) (by assumption)
+    else
+      if (x < b) then
+        node32 l a (del x m (by grind[complete])) b r (by assumption) (by assumption)
+      else if (x = b) then
+        let (b', r') := splitMin r (by grind[complete]) (by assumption)
+        node33 l a m b' r' (by assumption) (by assumption)
+      else
+        node33 l a m b (del x r (by grind[complete])) (by assumption) (by assumption)
 
 
+-- Example to test `del`
+def exampleTree : Tree23 Nat :=
+  Tree23.node3 (Tree23.node2 Tree23.nil 1 Tree23.nil) 2 (Tree23.node2 Tree23.nil 3 Tree23.nil) 4 (Tree23.node2 Tree23.nil 5 Tree23.nil)
 
+lemma exampleTree_complete : complete exampleTree := by
+  dsimp [exampleTree]
+  -- each child is a node2 with nil children, so height = 1 and they are complete
+  have h1 : complete (Tree23.node2 Tree23.nil 1 Tree23.nil) := by simp [complete, height]
+  have h2 : complete (Tree23.node2 Tree23.nil 3 Tree23.nil) := by simp [complete, height]
+  have h3 : complete (Tree23.node2 Tree23.nil 5 Tree23.nil) := by simp [complete, height]
+  simp [complete, height]
 
-  -- if x < a then node31 (del x l (by grind[complete])) a m b r
-  -- else if x = a then
-  --   let (a0, m0) := splitMin m (by grind[complete]) (by sorry)
-  --   node32 l a0 m0 b r
-  -- else if x < b then node32 l a (del x m (by grind[complete])) b r
-  -- else if x = b then
-  --   let (b0, r0) := splitMin r (by grind[complete]) (by sorry)
-  --   node33 l a m b0 r0
-  -- else node33 l a m b (del x r (by grind[complete]))
+#eval deleteTree (del 3 exampleTree exampleTree_complete) -- evaluates the deletion of 4 from `exampleTree`
