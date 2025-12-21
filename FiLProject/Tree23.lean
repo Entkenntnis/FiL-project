@@ -291,10 +291,6 @@ def node33 : (t₁ : Tree23 α) → α → (t₂ : Tree23 α) → α → DeleteU
 
 
 
--- TODO: rework to use exclude dead branches
-
-
-
 def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp α
 | nil, _, h => by grind[complete]
 | node2 l a r, hc, _ =>
@@ -307,12 +303,14 @@ def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp �
     have hr : r ≠ nil := by grind[height_pos_not_nil, complete, not_nil_height_pos]
     (a, node21 l' a r (by assumption))
 | node3 l a m b r, _, _ =>
-  -- ============ TODO =============
-  (a, DeleteUp.underflow Tree23.nil) -- PLACEHOLDER
+  if h: l = nil then
+    (a, DeleteUp.underflow nil) --true?
+  else
+    let (x, l') := splitMin l (by grind[complete]) (by assumption)
+    have hr : r ≠ nil := by grind[height_pos_not_nil, complete, not_nil_height_pos]
+    have hm : m ≠ nil := by grind[height_pos_not_nil, complete, not_nil_height_pos]
+    (a, node31 l' a m b r (by assumption) (by assumption))
 
-
--- | node3 nil a nil b nil, _, _ => (a, DeleteUp.eq (Tree23.node2 nil b nil))
--- | node3 l a m b r, _ , _=> let (x, l') := splitMin l (by grind[complete]) (by sorry); (x, node31 l' a m b r)
 
 
 def del : α → (t : Tree23 α) →  complete t → DeleteUp α
