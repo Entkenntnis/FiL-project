@@ -255,7 +255,6 @@ def node21 : DeleteUp α → α → (t: Tree23 α) → t ≠ nil → DeleteUp α
       -- the top element to the left, making both sides equal height
       DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node2 t₃ c t₄))
 
-
 def node22 : (t: Tree23 α) → α → DeleteUp α → t ≠ nil → DeleteUp α
 | t₁, a, DeleteUp.eq t₂, _ => DeleteUp.eq (Tree23.node2 t₁ a t₂)
 | l, a, DeleteUp.underflow t_r, h =>
@@ -266,31 +265,33 @@ def node22 : (t: Tree23 α) → α → DeleteUp α → t ≠ nil → DeleteUp α
     | node3 t₁ b t₂ c t₃ =>
       DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ b t₂) c (Tree23.node2 t₃ a t_r))
 
+def node31 : DeleteUp α → α → (t₁ : Tree23 α) → α → (t₂ : Tree23 α) → t₁ ≠ nil → t₂ ≠ nil → DeleteUp α
+| DeleteUp.eq t₁, a, t₂, b, t₃, _, _ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
+| DeleteUp.underflow t₁, a,t_m, c, r, _, _ =>
+    match t_m with
+    | nil => (by grind)
+    | node2 t₂ b t₃ => DeleteUp.eq (Tree23.node2 (Tree23.node3 t₁ a t₂ b t₃) c r)
+    | node3 t₂ b t₃ c_inner t₄ => DeleteUp.eq (node3 (node2 t₁ a t₂) b (node2 t₃ c_inner t₄) c r)
+
+def node32 : (t₁ : Tree23 α) → α → DeleteUp α → α → (t₂ : Tree23 α) →  t₁ ≠ nil → t₂ ≠ nil → DeleteUp α
+| t₁, a, DeleteUp.eq t₂, b, t₃, _, _ =>  DeleteUp.eq (node3 t₁ a t₂ b t₃)
+| t₁, a, DeleteUp.underflow t₂, b, t_m, _, _ =>
+    match t_m with
+    | nil => (by grind)
+    | node2 t₃ c t₄ => DeleteUp.eq (node2 t₁ a (node3 t₂ b t₃ c t₄))
+    | node3 t₃ c t₄ d t₅ => DeleteUp.eq (node3 t₁ a (node2 t₂ b t₃) c (node2 t₄ d t₅))
+
+def node33 : (t₁ : Tree23 α) → α → (t₂ : Tree23 α) → α → DeleteUp α →  t₁ ≠ nil → t₂ ≠ nil → DeleteUp α
+| t₁, a, t₂, b, DeleteUp.eq t₃, _, _ => DeleteUp.eq (node3 t₁ a t₂ b t₃)
+| t₁, a, t_m, c, DeleteUp.underflow t_u, _, _ =>
+    match t_m with
+    | nil => (by grind)
+    | node2 t₂ b t₃ => DeleteUp.eq (node2 t₁ a (node3 t₂ b t₃ c t_u))
+    | node3 t₂ b t₃ c_inner t₄ => DeleteUp.eq (node3 t₁ a (node2 t₂ b t₃) c_inner (node2 t₄ c t_u))
+
+
 
 -- TODO: rework to use exclude dead branches
-def node31 : DeleteUp α → α → Tree23 α → α → Tree23 α → DeleteUp α
-| DeleteUp.eq t₁, a, t₂, b, t₃ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
-| DeleteUp.underflow t₁, a, Tree23.node2 t₂ b t₃, c, t₄ =>
-  DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node2 t₃ c t₄))
-| DeleteUp.underflow t₁, a, Tree23.node3 t₂ b m c t₄, d, t₅ =>
-  DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node3 m c t₄ d t₅))
-| DeleteUp.underflow t₁, a, t₂, b, t₃ => DeleteUp.underflow (Tree23.node2 (Tree23.node2 t₁ a t₂) b t₃) -- this case should never occur
-
-def node32 : Tree23 α → α → DeleteUp α → α → Tree23 α → DeleteUp α
-| t₁, a, DeleteUp.eq t₂, b, t₃ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
-| t₁, a, DeleteUp.underflow t₂, b, Tree23.node2 t₃ c t₄ =>
-  DeleteUp.eq (Tree23.node3 t₁ a (Tree23.node2 t₂ b t₃) c t₄)
-| t₁, a, DeleteUp.underflow t₂, b, Tree23.node3 t₃ c m d t₅ =>
-  DeleteUp.eq (Tree23.node3 t₁ a (Tree23.node2 t₂ b t₃) c (Tree23.node2 m d t₅))
-| t₁, a, DeleteUp.underflow t₂, b, t₃ => DeleteUp.underflow (Tree23.node2 t₁ a (Tree23.node2 t₂ b t₃)) -- this case should never occur
-
-def node33 : Tree23 α → α → Tree23 α → α → DeleteUp α → DeleteUp α
-| t₁, a, t₂, b, DeleteUp.eq t₃ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
-| t₁, a, Tree23.node2 t₂ b t₃, c, DeleteUp.underflow t₄ =>
-  DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node2 t₃ c t₄))
-| t₁, a, Tree23.node3 t₂ b m c t₄, d, DeleteUp.underflow t₅ =>
-  DeleteUp.eq (Tree23.node2 (Tree23.node2 t₁ a t₂) b (Tree23.node3 m c t₄ d t₅))
-| t₁, a, t₂, b, DeleteUp.underflow t₃ => DeleteUp.underflow (Tree23.node2 t₁ a (Tree23.node2 t₂ b t₃)) -- this case should never occur
 
 
 
