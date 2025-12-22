@@ -364,6 +364,10 @@ def del : α → (t : Tree23 α) →  complete t → DeleteUp α
         node33 l a m b (del x r (by grind[complete])) (by assumption) (by assumption)
 
 
+def delete (x : α) (t : Tree23 α) (hc : complete t) : Tree23 α :=
+  deleteTree (del x t hc)
+
+
 -- Example to test `del`
 def exampleTree : Tree23 Nat :=
   Tree23.node3 (Tree23.node2 Tree23.nil 1 Tree23.nil) 2 (Tree23.node2 Tree23.nil 3 Tree23.nil) 4 (Tree23.node2 Tree23.nil 5 Tree23.nil)
@@ -376,4 +380,9 @@ lemma exampleTree_complete : complete exampleTree := by
   have h3 : complete (Tree23.node2 Tree23.nil 5 Tree23.nil) := by simp [complete, height]
   simp [complete, height]
 
-#eval deleteTree (del 3 exampleTree exampleTree_complete) -- evaluates the deletion of 4 from `exampleTree`
+#eval delete 3 exampleTree exampleTree_complete
+
+
+def deleteHeigth : DeleteUp α → ℕ
+| DeleteUp.eq t => height t
+| DeleteUp.underflow t => height t + 1
