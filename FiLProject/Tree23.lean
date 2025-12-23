@@ -388,5 +388,19 @@ def deleteHeigth : DeleteUp α → ℕ
 | DeleteUp.underflow t => height t + 1
 
 
-lemma complete_heigth (r : Tree23 α) (l' : DeleteUp α) (hr : complete r) (hl' : complete (deleteTree l') (hheight : height r = deleteHeigth l' )) :
-    complete (deleteTree (node21 l' a r (by grind[complete]))) := by sorry
+--lemma complete_heigth (r : Tree23 α) (l' : DeleteUp α) (hr : complete r) (hl' : complete (deleteTree l') (hheight : height r = deleteHeigth l' )) :
+--    complete (deleteTree (node21 l' a r (by grind[complete]))) := by sorry
+
+lemma splitMin_complete (t : Tree23 α ) (t' : DeleteUp α) (x : α)
+  (hct : complete t) (hht : 0 < height t)
+  (h : splitMin t hct (by grind[height_pos_not_nil]) = (x, t')) :
+    complete (deleteTree t') := by
+  induction t with
+  | nil => grind[complete]
+  | node2 l a r l_ih r_ih =>
+      unfold complete
+      simp
+      induction t' with
+      | eq t => grind[con]
+      | underflow t => sorry
+  | node3 l a m a r l_ih m_ih r_ih => sorry
