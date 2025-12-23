@@ -3,7 +3,7 @@ import Mathlib.Tactic
 inductive Tree23 (α : Type u)
 | nil
 | node2 (l : Tree23 α) (a : α) (r : Tree23 α)
-| node3 (l : Tree23 α) (a : α) (m : Tree23 α) (a : α) (r : Tree23 α)
+| node3 (l : Tree23 α) (a : α) (m : Tree23 α) (b : α) (r : Tree23 α)
 deriving DecidableEq, Repr
 compile_inductive% Tree23
 
@@ -301,7 +301,7 @@ def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp �
     -- ah, that is why this is called splitMin ...
     let (x, l') := splitMin l (by grind[complete]) (by assumption)
     have hr : r ≠ nil := by grind[height_pos_not_nil, complete, not_nil_height_pos]
-    (a, node21 l' a r (by assumption))
+    (x, node21 l' a r (by assumption))
 | node3 l a m b r, _, _ =>
   if h: l = nil then
     (a, DeleteUp.eq (node2 nil b nil))
@@ -309,7 +309,7 @@ def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp �
     let (x, l') := splitMin l (by grind[complete]) (by assumption)
     have hr : r ≠ nil := by grind[height_pos_not_nil, complete, not_nil_height_pos]
     have hm : m ≠ nil := by grind[height_pos_not_nil, complete, not_nil_height_pos]
-    (a, node31 l' a m b r (by assumption) (by assumption))
+    (x, node31 l' a m b r (by assumption) (by assumption))
 
 
 def del : α → (t : Tree23 α) →  complete t → DeleteUp α
@@ -383,24 +383,175 @@ lemma exampleTree_complete : complete exampleTree := by
 #eval delete 3 exampleTree exampleTree_complete
 
 
-def deleteHeigth : DeleteUp α → ℕ
+def deleteHeight : DeleteUp α → ℕ
 | DeleteUp.eq t => height t
 | DeleteUp.underflow t => height t + 1
 
 
---lemma complete_heigth (r : Tree23 α) (l' : DeleteUp α) (hr : complete r) (hl' : complete (deleteTree l') (hheight : height r = deleteHeigth l' )) :
---    complete (deleteTree (node21 l' a r (by grind[complete]))) := by sorry
+omit [LinearOrder α] in
+lemma completeness_preservation_deleteTree_node21 (a : α) (r : Tree23 α) (l' : DeleteUp α)
+  (hr : complete r) (hl' : complete (deleteTree l'))
+  (hheight : height r = deleteHeight l' ) (hrn : r ≠ nil) :
+    complete (deleteTree (node21 l' a r hrn)) := by
+  induction l' with
+  | eq l => grind[complete, deleteTree, node21, deleteHeight]
+  | underflow l =>
+    unfold deleteTree node21
+    grind[complete, deleteHeight, height, complete, deleteTree]
 
-lemma splitMin_complete (t : Tree23 α ) (t' : DeleteUp α) (x : α)
-  (hct : complete t) (hht : 0 < height t)
-  (h : splitMin t hct (by grind[height_pos_not_nil]) = (x, t')) :
-    complete (deleteTree t') := by
+omit [LinearOrder α] in
+lemma completeness_preservation_deleteTree_node31 (a b : α) (m r : Tree23 α) (l' : DeleteUp α)
+  (hm : complete m) (hr : complete r) (hl' : complete (deleteTree l'))
+  (hhrl' : height r = deleteHeight l') (hhml' : height m = height r) (hrn : r ≠ nil) (hmn : m ≠ nil):
+    complete (deleteTree (node31 l' a m b r hmn hrn)) := by
+  induction l' with
+  | eq l => grind[complete, deleteTree, node31, deleteHeight]
+  | underflow l =>
+    unfold deleteTree node31
+    grind[complete, deleteHeight, height, complete, deleteTree]
+
+omit [LinearOrder α] in
+lemma max_height_node21 (a : α) (r : Tree23 α)  (l' : DeleteUp α) (h : 0 < height r):
+    deleteHeight (node21 l' a r (by grind[height_pos_not_nil])) = max (deleteHeight l') (height r) + 1 := by
+  unfold deleteHeight
+  cases l' with
+  | eq l => grind[node21, height]
+  | underflow t =>
+    simp[node21]
+    grind[height]
+
+omit [LinearOrder α] in
+lemma max_height_node22 (a : α) (l : Tree23 α)  (r' : DeleteUp α) (h : 0 < height l):
+    deleteHeight (node22 l a r' (by grind[height_pos_not_nil])) = max (deleteHeight r') (height l) + 1 := by
+  unfold deleteHeight
+  cases r' with
+  | eq l => grind[node22, height]
+  | underflow t =>
+    simp[node22]
+    grind[height]
+
+omit [LinearOrder α] in
+lemma max_height_node31 (a b : α) (m r : Tree23 α) (l' : DeleteUp α) (hr : 0 < height r) (hm : 0 < height m) :
+    deleteHeight (node31 l' a m b r (by grind[height_pos_not_nil]) (by grind[height_pos_not_nil])) = max (deleteHeight l') (max (height m) (height r)) + 1 := by
+  unfold deleteHeight
+  cases l' with
+  | eq t => grind[node31, height]
+  | underflow t =>
+    simp[node31]
+    grind[height]
+
+omit [LinearOrder α] in
+lemma max_height_node32 (a b : α) (l r : Tree23 α) (m' : DeleteUp α) (hl : 0 < height l) (hr : 0 < height r) :
+    deleteHeight (node32 l a m' b r (by grind[height_pos_not_nil]) (by grind[height_pos_not_nil])) = max (deleteHeight m') (max (height l) (height r)) + 1 := by
+  unfold deleteHeight
+  cases m' with
+  | eq t => grind[node32, height]
+  | underflow t =>
+    simp[node32]
+    grind[height]
+
+omit [LinearOrder α] in
+lemma max_height_node33 (a b : α) (l m : Tree23 α) (r' : DeleteUp α) (hl : 0 < height l) (hm : 0 < height m) :
+    deleteHeight (node33 l a m b r' (by grind[height_pos_not_nil]) (by grind[height_pos_not_nil])) = max (deleteHeight r') (max (height l) (height m)) + 1 := by
+  unfold deleteHeight
+  cases r' with
+  | eq t => grind[node33, height]
+  | underflow t =>
+    simp[node33]
+    cases m with
+    | nil => grind
+    | node2 lm am rm => grind[height]
+    | node3 l a m b r => grind[height]
+
+lemma splitMin_height_complete (t : Tree23 α )
+  (hct: complete t) (hht : 0 < height t) :
+    deleteHeight (splitMin t hct (by grind[height_pos_not_nil])).2 = height t := by
+  induction t with
+  | nil => grind
+  | node2 l a r l_ih r_ih =>
+    by_cases h : l = nil
+    · grind[splitMin, deleteHeight, height_pos_not_nil, height, complete]
+    · grind[splitMin, not_nil_height_pos, max_height_node21, height, complete]
+  | node3 l a m b r l_ih m_ih r_ih =>
+    by_cases h : l = nil
+    · grind[splitMin, deleteHeight, height_pos_not_nil, height, complete]
+    · grind[splitMin, not_nil_height_pos, max_height_node31, height, complete]
+
+lemma splitMin_complete (t : Tree23 α)
+  (hct : complete t) (hht : 0 < height t) :
+    complete (deleteTree (splitMin t hct (by grind[height_pos_not_nil])).2) := by
   induction t with
   | nil => grind[complete]
   | node2 l a r l_ih r_ih =>
-      unfold complete
-      simp
-      induction t' with
-      | eq t => grind[con]
-      | underflow t => sorry
-  | node3 l a m a r l_ih m_ih r_ih => sorry
+      unfold splitMin
+      by_cases h : l = nil
+      · grind[complete, deleteTree]
+      · grind[completeness_preservation_deleteTree_node21, complete, not_nil_height_pos, splitMin_height_complete ]
+  | node3 l a m a r l_ih m_ih r_ih =>
+      unfold splitMin
+      by_cases h : l = nil
+      · grind[complete, deleteTree]
+      · grind[completeness_preservation_deleteTree_node31, complete, not_nil_height_pos, splitMin_height_complete ]
+
+lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
+    deleteHeight (del x t (by assumption)) = height t := by
+  induction t with
+  | nil => grind[height, del, deleteHeight]
+  | node2 l a r l_ih r_ih =>
+    unfold del
+    split
+    · grind[height, deleteHeight, complete]
+    · split
+      · expose_names
+        rw[max_height_node21]
+        · grind[height]
+        · grind[complete, not_nil_height_pos]
+      · split
+        · expose_names
+          rw[max_height_node22]
+          · have hr: r ≠ nil := by grind[complete, not_nil_height_pos, height]
+            have : deleteHeight (splitMin r (by grind[complete]) hr).2 = height r := by
+              rw[splitMin_height_complete]
+              grind[not_nil_height_pos]
+            grind[height, splitMin, deleteHeight, complete]
+          · grind[complete, not_nil_height_pos]
+        · expose_names
+          rw[max_height_node22]
+          · grind[height]
+          · grind[complete, not_nil_height_pos]
+  | node3 l a m b r l_ih m_ih r_ih =>
+    unfold del
+    split
+    · grind[deleteHeight, height, complete]
+    · split
+      · rw[max_height_node31]
+        · grind[height]
+        · grind[not_nil_height_pos, complete]
+        · grind[not_nil_height_pos, complete]
+      · split
+        · rw[max_height_node32]
+          · have hm : m ≠ nil := by grind[complete, not_nil_height_pos, height]
+            have : deleteHeight (splitMin m (by grind[complete]) hm).2 = height m := by
+              rw[splitMin_height_complete]
+              grind[not_nil_height_pos]
+            grind[height, splitMin, deleteHeight, complete]
+          · grind[not_nil_height_pos, complete]
+          · grind[not_nil_height_pos, complete]
+        · split
+          · rw[max_height_node32]
+            · grind[height]
+            · grind[not_nil_height_pos, complete]
+            · grind[not_nil_height_pos, complete]
+          · split
+            · rw[max_height_node33]
+              have hr: r ≠ nil := by grind[complete, not_nil_height_pos, height]
+              have : deleteHeight (splitMin r (by grind[complete]) hr).2 = height r := by
+                rw[splitMin_height_complete]
+                grind[not_nil_height_pos]
+              grind[height, splitMin, deleteHeight, complete]
+              · grind[not_nil_height_pos, complete]
+              · grind[not_nil_height_pos, complete]
+            · rw[max_height_node33]
+              · grind[height]
+              · grind[not_nil_height_pos, complete]
+              · grind[not_nil_height_pos, complete]
