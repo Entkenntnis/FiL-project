@@ -304,7 +304,7 @@ def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp �
     (a, node21 l' a r (by assumption))
 | node3 l a m b r, _, _ =>
   if h: l = nil then
-    (a, DeleteUp.underflow nil) --true?
+    (a, DeleteUp.eq (node2 nil b nil))
   else
     let (x, l') := splitMin l (by grind[complete]) (by assumption)
     have hr : r ≠ nil := by grind[height_pos_not_nil, complete, not_nil_height_pos]
