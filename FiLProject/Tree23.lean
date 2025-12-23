@@ -267,7 +267,7 @@ def node22 : (t: Tree23 α) → α → DeleteUp α → t ≠ nil → DeleteUp α
 
 def node31 : DeleteUp α → α → (t₁ : Tree23 α) → α → (t₂ : Tree23 α) → t₁ ≠ nil → t₂ ≠ nil → DeleteUp α
 | DeleteUp.eq t₁, a, t₂, b, t₃, _, _ => DeleteUp.eq (Tree23.node3 t₁ a t₂ b t₃)
-| DeleteUp.underflow t₁, a,t_m, c, r, _, _ =>
+| DeleteUp.underflow t₁, a, t_m, c, r, _, _ =>
     match t_m with
     | nil => (by grind)
     | node2 t₂ b t₃ => DeleteUp.eq (Tree23.node2 (Tree23.node3 t₁ a t₂ b t₃) c r)
@@ -386,3 +386,7 @@ lemma exampleTree_complete : complete exampleTree := by
 def deleteHeigth : DeleteUp α → ℕ
 | DeleteUp.eq t => height t
 | DeleteUp.underflow t => height t + 1
+
+
+lemma complete_heigth (r : Tree23 α) (l' : DeleteUp α) (hr : complete r) (hl' : complete (deleteTree l') (hheight : height r = deleteHeigth l' )) :
+    complete (deleteTree (node21 l' a r (by grind[complete]))) := by sorry
