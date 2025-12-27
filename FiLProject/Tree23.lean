@@ -238,6 +238,13 @@ lemma setTree_ins (t: Tree23 α) (x: α):
   | node3 l a m b r l_ih m_ih r_ih =>
     grind[setTree, insertTree, ins]
 
+lemma isin_el_setTree (t: Tree23 α) (x: α) (h: searchTree t):
+    isin t x ↔ x ∈ setTree t := by
+  induction t with
+  | nil => grind[isin, setTree]
+  | node2 l a r l_ih r_ih =>  grind[isin, setTree, searchTree]
+  | node3 l a m b r l_ih m_ih r_ih => grind[isin, setTree, searchTree]
+
 
 -- insertion is preserving search tree property
 lemma searchTree_ins_searchTree (t: Tree23 α) (x: α):
@@ -328,8 +335,14 @@ lemma isin_iff_setTree (t: Tree23 α) (x: α) (h: searchTree t):
   | node3 l a m b r l_ih m_ih r_ih => grind[setTree, isin, searchTree]
 
 -- maybe interesting ...
--- lemma isin_insert (t : Tree23 α) (x y : α) (h : searchTree t) :
---     isin (insert x t) y = true ↔ x = y ∨ isin t x = true := by
+lemma isin_insert (t : Tree23 α) (x y : α) (h : searchTree t) :
+    isin (insert x t) y = true ↔ x = y ∨ isin t y = true := by
+  cases t with
+  | nil => grind[insert, insertTree, ins, isin]
+  | node2 l a r => grind[isin_el_setTree, insert, setTree_ins, searchTree, searchTree_ins_searchTree]
+  | node3 l a m b r => grind[isin_el_setTree, insert, setTree_ins, searchTree, searchTree_ins_searchTree]
+
+
 
 
 
