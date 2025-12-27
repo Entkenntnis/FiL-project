@@ -228,7 +228,49 @@ def searchTree : (t : Tree23 α) → Prop
   searchTree l ∧ searchTree m ∧ searchTree r
 
 
+lemma setTree_ins (t: Tree23 α) (x: α):
+    setTree (insertTree (ins x t)) = {x} ∪ setTree t := by
+  induction t with
+  | nil =>
+    grind[setTree, insertTree, ins]
+  | node2 l a r l_ih r_ih =>
+    grind[setTree, insertTree, ins]
+  | node3 l a m b r l_ih m_ih r_ih =>
+    grind[setTree, insertTree, ins]
 
+
+-- insertion is preserving search tree property
+lemma searchTree_ins_searchTree (t: Tree23 α) (x: α):
+    searchTree t → searchTree (insertTree (ins x t)) := by
+  intro h
+  induction t with
+  | nil =>
+    unfold searchTree ins insertTree
+    simp
+    grind[setTree]
+  | node2 l a r l_ih r_ih =>
+    obtain ⟨ hl, hr, hl', hr' ⟩ := h
+    specialize l_ih hl'
+    specialize r_ih hr'
+    unfold ins
+    split
+    · split <;>
+      · expose_names
+        have : setTree (insertTree (ins x l)) = {x} ∪ setTree l := by
+          exact setTree_ins l x
+        simp[insertTree, heq] at this
+        grind[setTree, searchTree, insertTree]
+    · split
+      · expose_names
+        grind[searchTree, insertTree]
+      · have : setTree (insertTree (ins x r)) = {x} ∪ setTree r := by
+            exact setTree_ins r x
+        split
+        · grind[setTree, searchTree, insertTree]
+        · expose_names
+          simp[heq, insertTree] at this
+          grind[setTree, insertTree, searchTree]
+  | node3 l a m b r l_ih m_ih r_ih => sorry
 
 
 
