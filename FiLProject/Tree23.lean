@@ -163,7 +163,7 @@ def ins : α → Tree23 α → InsertUp α
                           else
                             match ins x r with
                             | InsertUp.eq r' => InsertUp.eq (Tree23.node3 l a m b r')
-                            | InsertUp.overflow r₁ c r₂ => InsertUp.overflow (Tree23.node2 l a m) c (Tree23.node2 r₁ b r₂)
+                            | InsertUp.overflow r₁ c r₂ => InsertUp.overflow (Tree23.node2 l a m) b (Tree23.node2 r₁ c r₂)
 
 def insertTree : InsertUp α → Tree23 α
 | InsertUp.eq t => t
@@ -270,7 +270,54 @@ lemma searchTree_ins_searchTree (t: Tree23 α) (x: α):
         · expose_names
           simp[heq, insertTree] at this
           grind[setTree, insertTree, searchTree]
-  | node3 l a m b r l_ih m_ih r_ih => sorry
+  | node3 l a m b r l_ih m_ih r_ih =>
+    obtain ⟨ hab, hl, hm, hmm, hr,  hl', hm', hr' ⟩ := h
+    specialize l_ih hl'
+    specialize m_ih hm'
+    specialize r_ih hr'
+    unfold ins
+    split
+    · split <;>
+      · expose_names
+        have : setTree (insertTree (ins x l)) = {x} ∪ setTree l := by
+            exact setTree_ins l x
+        simp[insertTree, heq] at this
+        grind[insertTree, searchTree, setTree]
+    · split
+      · grind[insertTree, searchTree]
+      · split
+        · split
+          · rename_i m' heq
+            have : setTree (insertTree (ins x m)) = {x} ∪ setTree m := by
+              exact setTree_ins m x
+            simp[insertTree, heq] at this
+            grind[searchTree, insertTree]
+          · rename_i b' m' heq
+            have : setTree (insertTree (ins x m)) = {x} ∪ setTree m := by
+              exact setTree_ins m x
+            simp[insertTree, heq] at this
+            have hab' : a < b' := by
+              grind[setTree]
+            grind[setTree, searchTree, insertTree]
+        · split
+          · simp[insertTree]
+            grind[searchTree]
+          · split
+            · rename_i r' heq
+              expose_names
+              simp[heq, insertTree] at r_ih
+              simp[insertTree]
+              unfold searchTree
+              refine ⟨ hab, hl, hm, hmm, ?_, hl', hm', r_ih ⟩
+              have : setTree (insertTree (ins x r)) = {x} ∪ setTree r := by
+                exact setTree_ins r x
+              grind[setTree, insertTree]
+            · rename_i c' r' heq
+              expose_names
+              simp[insertTree]
+              have : setTree (insertTree (ins x r)) = {x} ∪ setTree r := by
+                exact setTree_ins r x
+              grind[searchTree, setTree, insertTree]
 
 
 
