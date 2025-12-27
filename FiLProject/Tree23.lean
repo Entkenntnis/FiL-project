@@ -644,3 +644,14 @@ lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
               · grind[height]
               · grind[not_nil_height_pos, complete]
               · grind[not_nil_height_pos, complete]
+
+lemma isin_iff_setTree (t: Tree23 α) (x: α) (h: searchTree t):
+    isin t x = true ↔ x ∈ setTree t := by
+  induction t with
+  | nil => grind[setTree, isin]
+  | node2 l a r l_ih r_ih => grind[setTree, isin, searchTree]
+  | node3 l a m b r l_ih m_ih r_ih => grind[setTree, isin, searchTree]
+
+-- maybe interesting ...
+-- lemma isin_insert (t : Tree23 α) (x y : α) (h : searchTree t) :
+--     isin (insert x t) y = true ↔ x = y ∨ isin t x = true := by
