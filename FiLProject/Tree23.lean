@@ -519,14 +519,47 @@ lemma completeness_preservation_deleteTree_node21 (a : α) (r : Tree23 α) (l' :
     grind[complete, deleteHeight, height, complete, deleteTree]
 
 omit [LinearOrder α] in
+lemma completeness_preservation_deleteTree_node22 (a : α) (l : Tree23 α) (r' : DeleteUp α)
+  (hl : complete l) (hr' : complete (deleteTree r'))
+  (hheight : height l = deleteHeight r' ) (hln : l ≠ nil) :
+    complete (deleteTree (node22 l a r' hln)) := by
+  induction r' with
+  | eq r => grind[complete, deleteTree, node22, deleteHeight]
+  | underflow r =>
+    unfold deleteTree node22
+    grind[complete, deleteHeight, height, complete, deleteTree]
+
+omit [LinearOrder α] in
 lemma completeness_preservation_deleteTree_node31 (a b : α) (m r : Tree23 α) (l' : DeleteUp α)
   (hm : complete m) (hr : complete r) (hl' : complete (deleteTree l'))
-  (hhrl' : height r = deleteHeight l') (hhml' : height m = height r) (hrn : r ≠ nil) (hmn : m ≠ nil):
+  (hhrl' : height r = deleteHeight l') (hhmr : height m = height r) (hrn : r ≠ nil) (hmn : m ≠ nil):
     complete (deleteTree (node31 l' a m b r hmn hrn)) := by
   induction l' with
   | eq l => grind[complete, deleteTree, node31, deleteHeight]
   | underflow l =>
     unfold deleteTree node31
+    grind[complete, deleteHeight, height, complete, deleteTree]
+
+omit [LinearOrder α] in
+lemma completeness_preservation_deleteTree_node32 (a b : α) (l r : Tree23 α) (m' : DeleteUp α)
+  (hl : complete l) (hr : complete r) (hm' : complete (deleteTree m'))
+  (hhrm' : height r = deleteHeight m') (hhlr : height l = height r) (hln : l ≠ nil) (hrn : r ≠ nil):
+    complete (deleteTree (node32 l a m' b r hln hrn)) := by
+  induction m' with
+  | eq m => grind[complete, deleteTree, node32, deleteHeight]
+  | underflow m =>
+    unfold deleteTree node32
+    grind[complete, deleteHeight, height, complete, deleteTree]
+
+omit [LinearOrder α] in
+lemma completeness_preservation_deleteTree_node33 (a b : α) (l m : Tree23 α) (r' : DeleteUp α)
+  (hl : complete l) (hm : complete m) (hr' : complete (deleteTree r'))
+  (hhlr' : height l = deleteHeight r') (hhlm : height l = height m) (hln : l ≠ nil) (hmn : m  ≠ nil):
+    complete (deleteTree (node33 l a m b r' hln hmn)) := by
+  induction r' with
+  | eq r => grind[complete, deleteTree, node33, deleteHeight]
+  | underflow r =>
+    unfold deleteTree node33
     grind[complete, deleteHeight, height, complete, deleteTree]
 
 omit [LinearOrder α] in
@@ -681,12 +714,10 @@ lemma complete_complete_del (t : Tree23 α) (x : α) (h : complete t):
   induction t with
   | nil => grind[complete, deleteTree, del]
   | node2 l a r l_ih r_ih =>
-      unfold complete
-      simp
-      unfold del
-      by_cases h1 : l = nil
-      · by_cases h2: a = x
-        · sorry
-        · sorry
-      · sorry
-  | node3 l a m b r l_ih m_ih r_ih => sorry
+      grind[completeness_preservation_deleteTree_node21, completeness_preservation_deleteTree_node22, complete_deleteHeight, complete, not_nil_height_pos, splitMin_height_complete, splitMin_complete, deleteTree, del]
+  | node3 l a m b r l_ih m_ih r_ih =>
+      grind[completeness_preservation_deleteTree_node31, completeness_preservation_deleteTree_node32, completeness_preservation_deleteTree_node33, complete_deleteHeight, complete, not_nil_height_pos, splitMin_height_complete, splitMin_complete, deleteTree, del]
+
+lemma delete_completeness_preservation (t : Tree23 α) (x : α) (h : complete t):
+    complete (delete x t h) := by
+    grind[complete_complete_del, delete]
