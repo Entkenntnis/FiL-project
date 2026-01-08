@@ -721,3 +721,24 @@ lemma complete_complete_del (t : Tree23 α) (x : α) (h : complete t):
 lemma delete_completeness_preservation (t : Tree23 α) (x : α) (h : complete t):
     complete (delete x t h) := by
     grind[complete_complete_del, delete]
+
+
+-- searchTree property
+
+lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
+    searchTree t → searchTree (deleteTree (del x t h)) := by
+  intro hsT
+  induction t with
+  | nil => grind[searchTree, deleteTree, del]
+  | node2 l a r l_ih r_ih =>
+      obtain ⟨ hl, hr, hl', hr' ⟩ := hsT
+      specialize l_ih (by grind[complete]) hl'
+      specialize r_ih (by grind[complete]) hr'
+      unfold del
+      split
+      · grind[setTree, deleteTree, searchTree]
+      · split
+        · expose_names
+          sorry
+        · sorry
+  | node3 l a m b r l_ih m_ih r_ih => sorry
