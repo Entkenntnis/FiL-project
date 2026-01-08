@@ -747,6 +747,28 @@ lemma delete_completeness_preservation (t : Tree23 α) (x : α) (h : complete t)
 
 
 -- searchTree property
+
+lemma del_subset_pass_through_node21
+  (a x y : α )
+  (l r : Tree23 α)
+  (hl : complete l)
+  (hr : r ≠ nil)
+  (h : y ∈ setTree (deleteTree (del x l hl)) → y ∈ setTree l):
+    y ∈ setTree (deleteTree (node21 (del x l hl) a r hr)) → y ∈ setTree (node2 l a r) := by
+  cases del_eq : del x l hl
+  · grind[node21, deleteTree, setTree]
+  · simp[node21]
+    cases r with
+    | nil => grind
+    | node2 l' a' r' =>
+      simp[deleteTree]
+      rw [del_eq] at h
+      grind[setTree]
+    | node3 l a m b r =>
+      simp[deleteTree]
+      rw [del_eq] at h
+      grind[setTree]
+
 lemma del_subset (x : α ) (t : Tree23 α) (ht : complete t) (y : α ):
     y ∈ setTree (deleteTree (del x t ht)) → y ∈ setTree t := by
   intro h
