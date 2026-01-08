@@ -723,7 +723,79 @@ lemma delete_completeness_preservation (t : Tree23 α) (x : α) (h : complete t)
     grind[complete_complete_del, delete]
 
 
+
+
 -- searchTree property
+lemma del_subset (x : α ) (t : Tree23 α) (ht : complete t) (y : α ):
+    y ∈ setTree (deleteTree (del x t ht)) → y ∈ setTree t := by
+  intro h
+  induction t with
+  | nil => grind
+  | node2 l a r l_ih r_ih =>
+    specialize l_ih (by grind[complete])
+    specialize r_ih (by grind[complete])
+    unfold del at h
+    split at h
+    · split at h
+      · simp[deleteTree, setTree] at h
+      · simp[deleteTree, setTree] at h
+        grind[setTree]
+    · split at h
+      · unfold node21 at h
+        simp at h
+
+        sorry
+      · sorry
+  | node3 l a m b r l_ih m_ih r_ih => sorry
+
+
+lemma del_subset_node21 (a x: α ) (l r : Tree23 α) (hl : complete l) (el : α ) (hrn : r ≠ nil):
+    el ∈ setTree (deleteTree (node21 (del x l hl) x r hrn)) → el ∈ setTree (node2 l x r) := by
+  -- ???
+  sorry
+
+lemma searchTree_node21_searchTree (l' : DeleteUp α) (r : Tree23 α) (a : α) (h1: searchTree (deleteTree l')) (h2: searchTree r) (h3: ∀ x ∈ setTree (deleteTree l'), x < a) (h4: ∀ x ∈ setTree r, a < x) (hrn : r ≠ nil):
+  searchTree (deleteTree (node21 l' a r hrn)) := by
+  induction l' with
+  | eq l' =>
+    grind[node21, deleteTree, searchTree]
+  | underflow l' =>
+    simp[deleteTree] at ⊢ h1 h3
+    simp[node21]
+    cases r with
+    | nil => grind
+    | node2 m b r =>
+      simp
+      unfold searchTree
+      -- direct call to grind fails here
+      constructor
+      · grind[setTree]
+      · grind[setTree, searchTree]
+    | node3 l a' m b r =>
+      simp
+      unfold searchTree
+      refine ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ?_ ⟩ ⟩ ⟩ ⟩ ⟩ ⟩
+      · unfold setTree
+        intro x hx
+        have : a < a' := by grind[setTree]
+        grind[searchTree]
+      · unfold setTree
+        intro x xh
+        have : a < a' := by grind[setTree]
+        grind[searchTree]
+      · simp[searchTree]
+        refine ⟨ ?_,  ⟨ ?_,  ⟨ ?_, ?_ ⟩ ⟩ ⟩
+        · assumption
+        · grind[setTree]
+        · assumption
+        · grind[searchTree]
+      · grind[searchTree]
+      · grind[searchTree]
+      · grind[searchTree]
+      · grind[searchTree]
+
+
+
 
 lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
     searchTree t → searchTree (deleteTree (del x t h)) := by
@@ -738,7 +810,14 @@ lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
       split
       · grind[setTree, deleteTree, searchTree]
       · split
-        · expose_names
-          sorry
+        · expose_names;
+          apply searchTree_node21_searchTree
+          · assumption
+          · assumption
+          · intro x_1 hx
+            have (y : α ) : y ∈ setTree (deleteTree (del x l (by grind))) → y ∈ setTree l := by
+              grind[del_subset]
+            grind
+          · assumption
         · sorry
   | node3 l a m b r l_ih m_ih r_ih => sorry
