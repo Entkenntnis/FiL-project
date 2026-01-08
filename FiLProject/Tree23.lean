@@ -674,3 +674,19 @@ lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
               · grind[height]
               · grind[not_nil_height_pos, complete]
               · grind[not_nil_height_pos, complete]
+
+
+lemma complete_complete_del (t : Tree23 α) (x : α) (h : complete t):
+    complete (deleteTree (del x t h)) := by
+  induction t with
+  | nil => grind[complete, deleteTree, del]
+  | node2 l a r l_ih r_ih =>
+      unfold complete
+      simp
+      unfold del
+      by_cases h1 : l = nil
+      · by_cases h2: a = x
+        · sorry
+        · sorry
+      · sorry
+  | node3 l a m b r l_ih m_ih r_ih => sorry
