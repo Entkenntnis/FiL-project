@@ -415,8 +415,8 @@ def node31 : DeleteUp α → α → (t₁ : Tree23 α) → α → (t₂ : Tree23
 
 def node32 : (t₁ : Tree23 α) → α → DeleteUp α → α → (t₂ : Tree23 α) →  t₁ ≠ nil → t₂ ≠ nil → DeleteUp α
 | t₁, a, DeleteUp.eq t₂, b, t₃, _, _ =>  DeleteUp.eq (node3 t₁ a t₂ b t₃)
-| t₁, a, DeleteUp.underflow t₂, b, t_m, _, _ =>
-    match t_m with
+| t₁, a, DeleteUp.underflow t₂, b, t_r, _, _ =>
+    match t_r with
     | nil => (by grind)
     | node2 t₃ c t₄ => DeleteUp.eq (node2 t₁ a (node3 t₂ b t₃ c t₄))
     | node3 t₃ c t₄ d t₅ => DeleteUp.eq (node3 t₁ a (node2 t₂ b t₃) c (node2 t₄ d t₅))
@@ -748,31 +748,203 @@ lemma delete_completeness_preservation (t : Tree23 α) (x : α) (h : complete t)
 
 -- searchTree property
 
-lemma del_subset_pass_through_node21
-  (a x y : α )
+-- first prove a helper
+omit [LinearOrder α] in
+lemma node21_preserves_members
+  (l_up : DeleteUp α)
+  (a el: α)
   (l r : Tree23 α)
-  (hl : complete l)
   (hr : r ≠ nil)
-  (h : y ∈ setTree (deleteTree (del x l hl)) → y ∈ setTree l):
-    y ∈ setTree (deleteTree (node21 (del x l hl) a r hr)) → y ∈ setTree (node2 l a r) := by
-  cases del_eq : del x l hl
-  · grind[node21, deleteTree, setTree]
+  (hx : ∀ x: α, x ∈ setTree (deleteTree l_up) → x ∈ setTree l):
+    el ∈ setTree (deleteTree (node21 l_up a r hr)) → el ∈ setTree (node2 l a r) := by
+  cases leq : l_up
+  · grind[deleteTree, node21, setTree]
   · simp[node21]
     cases r with
-    | nil => grind
-    | node2 l' a' r' =>
+    | nil => grind[setTree]
+    | node2 l a r =>
+      expose_names
       simp[deleteTree]
-      rw [del_eq] at h
+      rw [leq] at hx
+      simp[deleteTree] at hx
       grind[setTree]
     | node3 l a m b r =>
+      expose_names
       simp[deleteTree]
-      rw [del_eq] at h
+      rw [leq] at hx
+      simp[deleteTree] at hx
       grind[setTree]
 
-lemma del_subset (x : α ) (t : Tree23 α) (ht : complete t) (y : α ):
+omit [LinearOrder α] in
+lemma node22_preserves_members
+  (r_up : DeleteUp α)
+  (a el: α)
+  (l r : Tree23 α)
+  (hl : l ≠ nil)
+  (hx : ∀ x: α, x ∈ setTree (deleteTree r_up) → x ∈ setTree r):
+    el ∈ setTree (deleteTree (node22 l a r_up hl)) → el ∈ setTree (node2 l a r) := by
+  cases req : r_up
+  · grind[deleteTree, node22, setTree]
+  · simp[node22]
+    cases l with
+    | nil => grind[setTree]
+    | node2 l a r =>
+      expose_names
+      simp[deleteTree]
+      rw [req] at hx
+      simp[deleteTree] at hx
+      grind[setTree]
+    | node3 l a m b r =>
+      expose_names
+      simp[deleteTree]
+      rw [req] at hx
+      simp[deleteTree] at hx
+      grind[setTree]
+
+omit [LinearOrder α] in
+lemma node31_preserves_members
+  (l_up : DeleteUp α)
+  (a b el: α)
+  (l m r : Tree23 α)
+  (hm : m ≠ nil)
+  (hr : r ≠ nil)
+  (hx : ∀ x: α, x ∈ setTree (deleteTree l_up) → x ∈ setTree l):
+    el ∈ setTree (deleteTree (node31 l_up a m b r hm hr)) → el ∈ setTree (node3 l a m b r) := by
+  cases leq: l_up
+  · simp[deleteTree, node31]
+    rw [leq] at hx
+    simp[deleteTree] at hx
+    specialize hx el
+    grind[setTree]
+  · simp[node31]
+    cases m with
+    | nil => grind[setTree]
+    | node2 l a r =>
+      expose_names
+      simp[deleteTree]
+      rw [leq] at hx
+      simp[deleteTree] at hx
+      grind[setTree]
+    | node3 l a m b r =>
+      expose_names
+      simp[deleteTree]
+      rw [leq] at hx
+      simp[deleteTree] at hx
+      grind[setTree]
+
+omit [LinearOrder α] in
+lemma node32_preserves_members
+  (m_up : DeleteUp α)
+  (a b el: α)
+  (l m r : Tree23 α)
+  (hl : l ≠ nil)
+  (hr : r ≠ nil)
+  (hx : ∀ x: α, x ∈ setTree (deleteTree m_up) → x ∈ setTree m):
+    el ∈ setTree (deleteTree (node32 l a m_up b r hl hr)) → el ∈ setTree (node3 l a m b r) := by
+  cases meq: m_up
+  · simp[deleteTree, node32]
+    rw [meq] at hx
+    simp[deleteTree] at hx
+    specialize hx el
+    grind[setTree]
+  · simp[node32]
+    cases r with
+    | nil => grind[setTree]
+    | node2 l a r =>
+      expose_names
+      simp[deleteTree]
+      rw [meq] at hx
+      simp[deleteTree] at hx
+      specialize hx el
+      unfold setTree -- necessary for grind to get through
+      grind[setTree]
+    | node3 l a m b r =>
+      expose_names
+      simp[deleteTree]
+      rw [meq] at hx
+      simp[deleteTree] at hx
+      grind[setTree]
+
+omit [LinearOrder α] in
+lemma node33_preserves_members
+  (r_up : DeleteUp α)
+  (a b el: α)
+  (l m r : Tree23 α)
+  (hl : l ≠ nil)
+  (hm : m ≠ nil)
+  (hx : ∀ x: α, x ∈ setTree (deleteTree r_up) → x ∈ setTree r):
+    el ∈ setTree (deleteTree (node33 l a m b r_up hl hm)) → el ∈ setTree (node3 l a m b r) := by
+  cases req: r_up
+  · simp[deleteTree, node33]
+    rw [req] at hx
+    simp[deleteTree] at hx
+    specialize hx el
+    grind[setTree]
+  · simp[node33]
+    cases m with
+    | nil => grind[setTree]
+    | node2 l a r =>
+      expose_names
+      simp[deleteTree]
+      rw [req] at hx
+      simp[deleteTree] at hx
+      specialize hx el
+      unfold setTree -- necessary for grind to get through
+      grind[setTree]
+    | node3 l a m b r =>
+      expose_names
+      simp[deleteTree]
+      rw [req] at hx
+      simp[deleteTree] at hx
+      grind[setTree]
+
+lemma splitMin_preserves_members
+  (t: Tree23 α)
+  (htc : complete t)
+  (htn : t ≠ nil)
+  (el : α):
+    el ∈ {(splitMin t htc htn).1} ∪ setTree (deleteTree (splitMin t htc htn).2) → el ∈ setTree t := by
+  induction t generalizing el with
+  | nil => grind
+  | node2 l a r l_ih r_ih =>
+    simp[splitMin]
+    split
+    · grind[setTree]
+    · rename_i hnn
+      simp
+      specialize l_ih (by grind[complete]) (by grind)
+      intro h'
+      cases h'
+      · specialize l_ih el
+        grind[setTree]
+      · grind[node21_preserves_members]
+  | node3 l a m b r l_ih m_ih r_ih =>
+    simp[splitMin]
+    split
+    · rename_i hnil
+      simp[deleteTree]
+      intro h'
+      cases h'
+      · rename_i hn
+        rw [hn]
+        unfold setTree
+        grind
+      · rename_i ht
+        grind[setTree]
+    · rename_i hnn
+      simp[deleteTree]
+      intro h'
+      cases h'
+      · rename_i hleft
+        specialize l_ih (by grind) (by grind) el
+        grind[setTree]
+      · rename_i hright
+        grind[node31_preserves_members]
+
+lemma del_preserves_members (x : α ) (t : Tree23 α) (ht : complete t) (y : α ):
     y ∈ setTree (deleteTree (del x t ht)) → y ∈ setTree t := by
   intro h
-  induction t with
+  induction t generalizing y with
   | nil => grind
   | node2 l a r l_ih r_ih =>
     specialize l_ih (by grind[complete])
@@ -789,43 +961,61 @@ lemma del_subset (x : α ) (t : Tree23 α) (ht : complete t) (y : α ):
         · simp [del_eq, deleteTree, node21] at h
           cases r <;> grind[setTree, deleteTree]
       · split at h
-        · unfold splitMin at h
-          cases r with
-          | nil => grind
-          | node2 l a r =>
-            simp at h
-            split at h
-            · unfold node22 at h
-              simp at h
-              expose_names
-              cases l_1
-              · grind
-              · grind[deleteTree, setTree]
-              · grind[deleteTree, setTree]
-            · unfold node22 at h
-              simp at h
-              expose_names
-              cases l_1
-              -- not really possible without proper helper functions
-              · grind
-              · simp[node21] at h
-                sorry
-              · --grind[deleteTree, setTree]
-                sorry
-          | node3 l a m b r => sorry
+        · have : y ∈ setTree (deleteTree (node22
+                                            l
+                                            (splitMin r (by grind) (by grind)).1
+                                            (splitMin r (by grind) (by grind)).2
+                                            (by grind))) := by
+            grind
+          have: y ∈ setTree (node2 l (splitMin r (by grind) (by grind)).1 r) := by
+            grind[splitMin_preserves_members, node22_preserves_members]
+          grind[splitMin_preserves_members, setTree]
         · cases del_eq : (del x r (by grind : complete r))
           · grind[node22, deleteTree, setTree]
           · simp [del_eq, deleteTree, node22] at h
-            cases r <;> grind[setTree, deleteTree]
-  | node3 l a m b r l_ih m_ih r_ih => sorry
+            grind[setTree, deleteTree]
+  | node3 l a m b r l_ih m_ih r_ih =>
+    specialize l_ih (by grind[complete])
+    specialize m_ih (by grind[complete])
+    specialize r_ih (by grind[complete])
+    unfold del at h
+    split at h
+    · split at h
+      · grind[setTree, deleteTree]
+      · split at h
+        · grind[setTree, deleteTree]
+        · grind[setTree, deleteTree]
+    · split at h
+      · grind[node31_preserves_members]
+      · split at h
+        · have : y ∈ setTree (deleteTree (node32
+                                            l
+                                            (splitMin m (by grind) (by grind)).1
+                                            (splitMin m (by grind) (by grind)).2
+                                            b r
+                                            (by grind) (by grind))) := by
+            grind
+          have: y ∈ setTree (node3 l (splitMin m (by grind) (by grind)).1 m b r) := by
+            grind[splitMin_preserves_members, node32_preserves_members]
+          unfold setTree at this ⊢
+          grind[splitMin_preserves_members, setTree]
+        · split at h
+          · grind[node32_preserves_members]
+          · split at h
+            · have : y ∈ setTree (deleteTree (node33
+                                                l a m
+                                                (splitMin r (by grind) (by grind)).1
+                                                (splitMin r (by grind) (by grind)).2
+                                                (by grind) (by grind))) := by
+                grind
+              have: y ∈ setTree (node3 l a m (splitMin r (by grind) (by grind)).1 r) := by
+                grind[splitMin_preserves_members, node33_preserves_members]
+              unfold setTree at this ⊢
+              grind[splitMin_preserves_members, setTree]
+            · grind[node33_preserves_members]
 
 
-lemma del_subset_node21 (a x: α ) (l r : Tree23 α) (hl : complete l) (el : α ) (hrn : r ≠ nil):
-    el ∈ setTree (deleteTree (node21 (del x l hl) x r hrn)) → el ∈ setTree (node2 l x r) := by
-  -- ???
-
-  sorry
-
+-- main part of search tree preserveration
 lemma searchTree_node21_searchTree (l' : DeleteUp α) (r : Tree23 α) (a : α) (h1: searchTree (deleteTree l')) (h2: searchTree r) (h3: ∀ x ∈ setTree (deleteTree l'), x < a) (h4: ∀ x ∈ setTree r, a < x) (hrn : r ≠ nil):
   searchTree (deleteTree (node21 l' a r hrn)) := by
   induction l' with
@@ -866,9 +1056,7 @@ lemma searchTree_node21_searchTree (l' : DeleteUp α) (r : Tree23 α) (a : α) (
       · grind[searchTree]
       · grind[searchTree]
 
-
-
-
+-- final proof
 lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
     searchTree t → searchTree (deleteTree (del x t h)) := by
   intro hsT
@@ -888,7 +1076,7 @@ lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
           · assumption
           · intro x_1 hx
             have (y : α ) : y ∈ setTree (deleteTree (del x l (by grind))) → y ∈ setTree l := by
-              grind[del_subset]
+              grind[del_preserves_members]
             grind
           · assumption
         · sorry
