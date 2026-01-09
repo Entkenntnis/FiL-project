@@ -1079,5 +1079,9 @@ lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
               grind[del_preserves_members]
             grind
           · assumption
-        · sorry
+        · split
+          · -- splitMin + node22
+            sorry
+          · -- node22
+            sorry
   | node3 l a m b r l_ih m_ih r_ih => sorry
