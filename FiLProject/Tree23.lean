@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+set_option profiler true
 
 inductive Tree23 (α : Type u)
 | nil
@@ -1056,6 +1057,42 @@ lemma searchTree_node21_searchTree (l' : DeleteUp α) (r : Tree23 α) (a : α) (
       · grind[searchTree]
       · grind[searchTree]
 
+lemma searchTree_node22_searchTree (r': DeleteUp α) (l : Tree23 α) (a : α) (h1: searchTree (deleteTree r')) (h2: searchTree l) (h3: ∀ x ∈ setTree (deleteTree r'), a < x) (h4: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil):
+  searchTree (deleteTree (node22 l a r' hln)) := by
+  induction r' with
+  | eq r' =>
+    grind[node22, deleteTree, searchTree]
+  | underflow r' =>
+    simp[deleteTree] at ⊢ h1 h3
+    simp[node22]
+    cases l with
+    | nil => grind
+    | node2 l a r =>
+      simp
+      unfold searchTree
+      -- direct call to grind fails here
+      constructor
+      · grind[setTree]
+      · grind[setTree, searchTree]
+    | node3 l a' m b r =>
+      simp
+      unfold searchTree
+      refine ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ?_ ⟩ ⟩ ⟩ ⟩ ⟩ ⟩
+      · unfold setTree
+        intro x hx
+        have : a > b := by grind[setTree]
+        grind[searchTree]
+      · unfold setTree
+        intro x xh
+        have : a > b := by grind[setTree]
+        grind[searchTree]
+      · grind[searchTree]
+      · intro x xh
+        grind[searchTree, setTree]
+      · grind[searchTree]
+      · grind[searchTree]
+      · grind[searchTree]
+
 -- final proof
 lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
     searchTree t → searchTree (deleteTree (del x t h)) := by
@@ -1082,6 +1119,13 @@ lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
         · split
           · -- splitMin + node22
             sorry
-          · -- node22
-            sorry
+          · expose_names;
+            apply searchTree_node22_searchTree
+            · assumption
+            · assumption
+            · intro x_1 hx
+              have (y : α ) : y ∈ setTree (deleteTree (del x r (by grind))) → y ∈ setTree r := by
+                grind[del_preserves_members]
+              grind
+            · assumption
   | node3 l a m b r l_ih m_ih r_ih => sorry
