@@ -1093,6 +1093,69 @@ lemma searchTree_node22_searchTree (r': DeleteUp α) (l : Tree23 α) (a : α) (h
       · grind[searchTree]
       · grind[searchTree]
 
+lemma searchTree_node31_searchTree (l' : DeleteUp α) (m : Tree23 α) (r : Tree23 α) (a : α) (b : α) (hsl': searchTree (deleteTree l')) (hsm: searchTree m) (hsr: searchTree r) (hab : a < b) (hl's: ∀ x ∈ setTree (deleteTree l'), x < a) (hms: ∀ x ∈ setTree m, a < x) (hmb: ∀ x ∈ setTree m, x < b) (hrs: ∀ x ∈ setTree r, b < x) (hmn : m ≠ nil) (hrn : r ≠ nil) :
+    searchTree (deleteTree (node31 l' a m b r hmn hrn)) := by
+  induction l' with
+  | eq l' => grind[node31, deleteTree, searchTree]
+  | underflow l' =>
+    simp[deleteTree] at *
+    simp[node31]
+    cases m with
+    | nil => grind
+    | node2 ml ma mr =>
+      simp
+      unfold searchTree
+      -- direct call to grind fails here
+      constructor
+      · grind[setTree]
+      · constructor
+        · grind[setTree, searchTree]
+        · constructor
+          · unfold searchTree -- direct call to grind fails here, again
+            constructor
+            · grind[setTree, searchTree]
+            · grind[setTree, searchTree]
+          · assumption
+    | node3 ml ma m mb mr =>
+      simp
+      unfold searchTree
+      refine ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ?_ ⟩ ⟩ ⟩ ⟩ ⟩ ⟩
+      · have : ma ∈ (ml.node3 ma m mb mr).setTree := by grind[setTree, searchTree]
+        grind
+      · unfold setTree
+        intro x xh
+        have : a < ma := by grind[setTree]
+        grind[searchTree]
+      · unfold setTree
+        intro x xh
+        have : a < ma := by grind[setTree]
+        grind[searchTree]
+      · unfold setTree
+        intro x xh
+        have : x ∈ (ml.node3 ma m mb mr).setTree := by grind[setTree, searchTree]
+        grind[searchTree]
+      · unfold setTree
+        intro x
+        cases r with
+        | nil => grind[deleteTree, searchTree]
+        | node2 rl ra r =>
+          simp
+          intro hx
+          have h: x ∈ (rl.node2 ra r).setTree := by grind[setTree, searchTree]
+          grind[searchTree]
+        | node3 rl ra rm rb r =>
+          simp
+          intro h
+          have : x ∈ (rl.node3 ra rm rb r).setTree := by grind[setTree, searchTree]
+          grind[searchTree]
+      · simp[searchTree]
+        refine ⟨ ?_,  ⟨ ?_,  ⟨ ?_, ?_ ⟩ ⟩ ⟩
+        · assumption
+        · grind[setTree]
+        · assumption
+        · grind[setTree, searchTree]
+      · grind[searchTree]
+
 -- final proof
 lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
     searchTree t → searchTree (deleteTree (del x t h)) := by
