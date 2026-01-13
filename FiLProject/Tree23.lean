@@ -1174,17 +1174,19 @@ lemma searchTree_node33_searchTree (r' : DeleteUp α) (l : Tree23 α) (m : Tree2
         grind[searchTree]
       · assumption
       · intro x hx
-        have : x ∈ (ml.node3 ma m mb mr).setTree := by grind[setTree, searchTree]
+        have : x ∈ (ml.node3 ma m mb mr).setTree := by grind[setTree]
         grind[searchTree]
       · unfold setTree
         intro x xh
-        have : x ∈ (ml.node3 ma m mb mr).setTree := by grind[setTree, searchTree]
+        have : x ∈ (ml.node3 ma m mb mr).setTree := by grind[setTree]
         grind[searchTree]
       · intro x hx
-        have : mb ∈ (ml.node3 ma m mb mr).setTree := by grind[setTree, searchTree]
-        grind[searchTree]
+        have h1: mb < b := by grind[setTree]
+        grind[setTree, searchTree]
       · assumption
-      · sorry
+      · constructor
+        · grind[searchTree]
+        · grind[searchTree, setTree]
 
 -- final proof
 lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
@@ -1236,10 +1238,19 @@ lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
       · split
         · grind[searchTree_node31_searchTree, del_preserves_members]
         · split
-          · sorry
+          · sorry --searchTree_node32_searchTree (todo)
           · split
             · expose_names;
-              sorry --searchTree_node31_searchTree
+              sorry
             · split
               · sorry
-              · sorry
+              · expose_names
+                apply searchTree_node33_searchTree
+                · assumption
+                · assumption
+                · assumption
+                · assumption
+                · grind[del_preserves_members]
+                · assumption
+                · assumption
+                · assumption
