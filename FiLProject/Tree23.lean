@@ -1145,7 +1145,50 @@ lemma searchTree_node31_searchTree (l' : DeleteUp α) (m : Tree23 α) (r : Tree2
         · grind[setTree, searchTree]
       · grind[searchTree]
 
-lemma searchTree_node33_searchTree (r' : DeleteUp α) (l : Tree23 α) (m : Tree23 α) (a : α) (b : α) (hsr': searchTree (deleteTree r')) (hsl: searchTree l) (hsm: searchTree m) (hab : a < b) (hm's: ∀ x ∈ setTree (deleteTree r'), b < x) (hms: ∀ x ∈ setTree m, a < x) (hmb: ∀ x ∈ setTree m, x < b) (hls: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil) (hmn : m ≠ nil) :
+lemma searchTree_node32_searchTree (m' : DeleteUp α) (l : Tree23 α) (r : Tree23 α) (a : α) (b : α) (hsm': searchTree (deleteTree m')) (hsl: searchTree l) (hsr: searchTree r) (hab : a < b) (hm's :  ∀ x ∈ setTree (deleteTree m'), a < x) (hm'b : ∀ x ∈ setTree (deleteTree m'), x < b) (hrs: ∀ x ∈ setTree r, b < x) (hls: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil) (hrn : r ≠ nil) :
+    searchTree (deleteTree (node32 l a m' b r hln hrn)) := by
+  induction m' with
+  | eq m' => grind[node32, deleteTree, searchTree]
+  | underflow m' =>
+    simp[deleteTree] at *
+    simp[node32]
+    cases r with
+    | nil => grind
+    | node2 l a r => grind[setTree, searchTree] --wow direct call to grind works here!
+    | node3 rl ra rm rb r =>
+      simp
+      unfold searchTree
+      refine ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ⟨ ?_,  ?_ ⟩ ⟩ ⟩ ⟩ ⟩ ⟩
+      · have : ra ∈ (rl.node3 ra rm rb r).setTree := by
+          unfold setTree
+          simp
+        grind
+      · assumption
+      · intro x hx
+        specialize hrs x
+        grind[searchTree, setTree]
+      · intro x hx
+        have : ra ∈ (rl.node3 ra rm rb r).setTree := by
+          unfold setTree
+          simp
+        grind[searchTree, setTree]
+      · intro x hx
+        have : ra ∈ (rl.node3 ra rm rb r).setTree := by
+          unfold setTree
+          simp
+        grind[searchTree, setTree]
+      · assumption
+      · constructor
+        · simp[searchTree]
+          refine ⟨ ?_,  ⟨ ?_,  ⟨ ?_, ?_ ⟩ ⟩ ⟩
+          · assumption
+          · grind[setTree]
+          · assumption
+          · grind[searchTree, setTree]
+        · grind[searchTree, setTree]
+
+
+lemma searchTree_node33_searchTree (r' : DeleteUp α) (l : Tree23 α) (m : Tree23 α) (a : α) (b : α) (hsr': searchTree (deleteTree r')) (hsl: searchTree l) (hsm: searchTree m) (hab : a < b) (hr's: ∀ x ∈ setTree (deleteTree r'), b < x) (hms: ∀ x ∈ setTree m, a < x) (hmb: ∀ x ∈ setTree m, x < b) (hls: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil) (hmn : m ≠ nil) :
     searchTree (deleteTree (node33 l a m b r' hln hmn)) := by
   induction r' with
   | eq r' => grind[node33, deleteTree, searchTree]
@@ -1164,7 +1207,7 @@ lemma searchTree_node33_searchTree (r' : DeleteUp α) (l : Tree23 α) (m : Tree2
         · grind[setTree, searchTree]
         · constructor
           · grind[setTree, searchTree]
-          · unfold searchTree
+          · unfold searchTree -- direct call to grind fails here, again
             constructor
             · grind[setTree, searchTree]
             · grind[setTree, searchTree]
@@ -1319,10 +1362,21 @@ lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
       · split
         · grind[searchTree_node31_searchTree, del_preserves_members]
         · split
-          · sorry --searchTree_node32_searchTree (todo)
+          · apply searchTree_node32_searchTree
+            · grind[deleteTree_splitMin_preserves_searchTree_2]
+            · assumption
+            · assumption
+            · have : (m.splitMin (by grind) (by grind[complete])).1 ∈ m.setTree := by
+                grind[splitMin_preserves_members, setTree, searchTree]
+              grind[searchTree, setTree]
+            · grind[deleteTree_splitMin_preserves_searchTree_1]
+            · grind[splitMin_preserves_members, setTree, searchTree]
+            · assumption
+            · have : (m.splitMin (by grind) (by grind[complete])).1 ∈ m.setTree := by
+                grind[splitMin_preserves_members, setTree, searchTree]
+              grind[searchTree, setTree]
           · split
-            · expose_names;
-              sorry
+            · grind[searchTree_node32_searchTree, del_preserves_members]
             · split
               · apply searchTree_node33_searchTree
                 · grind[deleteTree_splitMin_preserves_searchTree_2]
