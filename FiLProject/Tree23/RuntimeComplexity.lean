@@ -1,4 +1,6 @@
 import FiLProject.Tree23.Insert
+import Mathlib.Analysis.Asymptotics.Defs
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 namespace Tree23
 
@@ -45,25 +47,15 @@ lemma runtime_height (x : α) (t : Tree23 α) :
   | node3 l a m b r l_ih m_ih r_ih => grind[T_insert]
 
 
-lemma insertion_time (x : α) (t : Tree23 α) :
-    complete t → T_insert x t ≤ Nat.log 3 (numNodes t) + 1 := by
-  induction t with
-  | nil =>
-    intro h
-    simp[T_insert]
-  | node2 l a r l_ih r_ih =>
-    intro h
-    specialize l_ih (by grind[complete])
-    specialize r_ih (by grind[complete])
-    by_cases x = a
-    · grind[T_insert]
-    · by_cases x < a
-      · expose_names
-        unfold T_insert
-        split
-        · contradiction
-        ·
-          sorry
+lemma insertion_time_approx (x : α) (t : Tree23 α) (ht: complete t) :
+    T_insert x t ≤ Real.logb 2 (2 * numNodes t + 2) := by
+  have := le_trans (α := ℝ) (a := T_insert x t) (b := height t + 1) (c := Real.logb 2 (2 * numNodes t + 2))
+  have h1 := runtime_height x t
+  rify at h1
+  have h2 := height_numNodes_log t ht
+  rify at h2
+  specialize this h1 h2
+  exact this
 
-      · sorry
-  | node3 l a m b r l_ih m_ih r_ih => sorry
+-- lemma insertion_time (x : α) (t : Tree23 α) (ht: complete t):
+--   T_insert x t =O[l] log n := by
