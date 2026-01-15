@@ -1,6 +1,5 @@
 import FiLProject.Tree23.Insert
 import Mathlib.Analysis.Asymptotics.Defs
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 namespace Tree23
 
@@ -48,14 +47,59 @@ lemma runtime_height (x : α) (t : Tree23 α) :
 
 
 lemma insertion_time_approx (x : α) (t : Tree23 α) (ht: complete t) :
-    T_insert x t ≤ Real.logb 2 (2 * numNodes t + 2) := by
+    T_insert x t ≤ (Real.log 2)⁻¹ * Real.log (2 * numNodes t + 2) := by
   have := le_trans (α := ℝ) (a := T_insert x t) (b := height t + 1) (c := Real.logb 2 (2 * numNodes t + 2))
   have h1 := runtime_height x t
   rify at h1
   have h2 := height_numNodes_log t ht
   rify at h2
   specialize this h1 h2
+  rw [← div_eq_inv_mul]
   exact this
 
--- lemma insertion_time (x : α) (t : Tree23 α) (ht: complete t):
---   T_insert x t =O[l] log n := by
+abbrev CompleteTree (α : Type u) := { t : Tree23 α // complete t }
+
+def sizeAtTop : Filter (CompleteTree α) := -- why do we need a filter?
+  Filter.atTop.comap (fun t ↦ numNodes t.val)
+
+-- T_insert ∈ O(logn)
+-- n is number of nodes for t
+-- t is a complete tree
+theorem T_insert_is_log_n (x : α) :
+    (fun (t) ↦ (T_insert x t.val : ℝ))
+      =O[sizeAtTop]
+    (fun t ↦ Real.log (numNodes t.val)) := by
+  apply Asymptotics.IsBigO.trans (g := fun t ↦ (Real.log 2)⁻¹ * Real.log (2 * (numNodes t.val) + 2))
+  · apply Asymptotics.IsBigO.of_norm_le
+    intro t
+    simp
+    grind[insertion_time_approx]
+  · apply Asymptotics.IsBigO.trans ( g:= fun t ↦ Real.log (2 * (numNodes t.val) + 2))
+    · apply Asymptotics.IsBigO.const_mul_left
+      simp[Asymptotics.isBigO_refl]
+    · apply Asymptotics.IsBigO.of_bound 3
+      filter_upwards [Filter.preimage_mem_comap (Filter.Ici_mem_atTop 2)] with t ht
+      have : numNodes t.val ≥ 2 := by grind
+      simp
+      set n := t.val.numNodes
+      rw [abs_of_nonneg (by apply Real.log_nonneg; norm_cast; linarith)]
+      rw [abs_of_nonneg (by apply Real.log_nonneg; norm_cast; linarith)]
+      calc Real.log (2 * n + 2)
+        _ ≤ Real.log (3 * n) := by
+          apply Real.log_le_log
+          · linarith
+          · norm_cast
+            linarith
+        _ = Real.log 3 + Real.log n := by
+          apply Real.log_mul
+          · simp
+          · norm_cast
+            grind
+        _ ≤ (2: ℕ) * Real.log n + Real.log n := by
+          gcongr
+          rw [← Real.log_pow]
+          apply Real.log_le_log
+          · simp
+          · norm_cast
+            nlinarith
+        _ = 3 * Real.log n := by ring
