@@ -2,6 +2,10 @@ import FiLProject.Tree23.Basic
 
 namespace Tree23
 
+universe u
+
+variable {α : Type u}
+
 def complete : Tree23 α  → Bool
 | nil => true
 | node2 l _ r => height l = height r ∧ complete l ∧ complete r

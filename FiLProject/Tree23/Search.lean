@@ -1,5 +1,10 @@
 import FiLProject.Tree23.Basic
+
 namespace Tree23
+
+universe u
+
+variable {α : Type u}
 
 variable [LinearOrder α]
 

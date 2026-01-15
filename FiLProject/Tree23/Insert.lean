@@ -3,7 +3,13 @@ import FiLProject.Tree23.Search
 
 namespace Tree23
 
+universe u
+
+variable {α : Type u}
+
 variable [LinearOrder α]
+
+
 
 inductive InsertUp (α : Type u) where
 | eq (t: Tree23 α)

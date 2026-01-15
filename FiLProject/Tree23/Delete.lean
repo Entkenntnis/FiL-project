@@ -3,6 +3,10 @@ import FiLProject.Tree23.Search
 
 namespace Tree23
 
+universe u
+
+variable {α : Type u}
+
 variable [LinearOrder α]
 
 inductive DeleteUp (α : Type u) where
