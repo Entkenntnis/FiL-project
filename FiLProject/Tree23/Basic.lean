@@ -5,8 +5,7 @@ inductive Tree23 (α : Type u)
 | nil
 | node2 (l : Tree23 α) (a : α) (r : Tree23 α)
 | node3 (l : Tree23 α) (a : α) (m : Tree23 α) (b : α) (r : Tree23 α)
-deriving DecidableEq, Repr
-compile_inductive% Tree23
+deriving DecidableEq
 
 namespace Tree23
 
@@ -60,3 +59,8 @@ def minHeight : Tree23 α  → ℕ
 | nil => 0
 | node2 l _ r => min (height l) (height r) + 1
 | node3 l _ m _ r => min (height l) (min (height m) (height r)) + 1
+
+def inorder : Tree23 α  → List α
+| nil => []
+| node2 l a r => inorder l ++ [a] ++ inorder r
+| node3 l a m b r => inorder l ++ [a] ++ inorder m ++ [b] ++ inorder r
