@@ -15,11 +15,15 @@ inductive InsertUp (α : Type u) where
 | eq (t: Tree23 α)
 | overflow (l: Tree23 α) (a: α)  (r: Tree23 α)
 
+
+-- a bit of clean up
+open InsertUp
+
 def ins : α → Tree23 α → InsertUp α
 | x, nil => InsertUp.overflow (Tree23.nil) x (Tree23.nil)
 | x, node2 l a r => if x < a then
                       match ins x l with
-                      | InsertUp.eq l' => InsertUp.eq (Tree23.node2 l' a r)
+                      | InsertUp.eq l' => eq (node2 l' a r)
                       | InsertUp.overflow l₁ b l₂ => InsertUp.eq (Tree23.node3 l₁ b l₂ a r)
                     else if x = a then
                       InsertUp.eq (Tree23.node2 l a r)
@@ -58,10 +62,7 @@ def insertHeigth : InsertUp α → ℕ
 
 lemma insert_preservation_completeness_helper (t : Tree23 α ) (a : α):
     complete t → complete (insertTree (ins a t)) ∧ insertHeigth (ins a t) = height t := by
-  induction t with
-  | nil => grind[insertTree, insertHeigth, complete, ins]
-  | node2 _ _ _ _ _ => grind [insertTree, ins, complete, insertHeigth]
-  | node3 _ _ _ _ _ _ _ _ => grind [insertTree, ins, complete, insertHeigth]
+  induction t <;> grind[insertTree, insertHeigth, complete, ins]
 
 lemma insert_preservation_completeness (t : Tree23 α ) (a : α):
   complete t → complete (insert a t) := by
@@ -69,13 +70,7 @@ grind [insert_preservation_completeness_helper, insert]
 
 lemma setTree_ins (t: Tree23 α) (x: α):
     setTree (insertTree (ins x t)) = {x} ∪ setTree t := by
-  induction t with
-  | nil =>
-    grind[setTree, insertTree, ins]
-  | node2 l a r l_ih r_ih =>
-    grind[setTree, insertTree, ins]
-  | node3 l a m b r l_ih m_ih r_ih =>
-    grind[setTree, insertTree, ins]
+  induction t <;> grind[setTree, insertTree, ins]
 
 -- insertion is preserving search tree property
 lemma searchTree_ins_searchTree (t: Tree23 α) (x: α):
@@ -91,7 +86,7 @@ lemma searchTree_ins_searchTree (t: Tree23 α) (x: α):
     specialize l_ih hl'
     specialize r_ih hr'
     unfold ins
-    split
+    split -- note: split_ifs
     · split <;>
       · expose_names
         have : setTree (insertTree (ins x l)) = {x} ∪ setTree l := by
@@ -117,8 +112,7 @@ lemma searchTree_ins_searchTree (t: Tree23 α) (x: α):
     split
     · split <;>
       · expose_names
-        have : setTree (insertTree (ins x l)) = {x} ∪ setTree l := by
-            exact setTree_ins l x
+        have := setTree_ins l x
         simp[insertTree, heq] at this
         grind[insertTree, searchTree, setTree]
     · split

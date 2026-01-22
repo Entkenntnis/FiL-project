@@ -25,6 +25,8 @@ def maxt : ℕ → Tree23 Unit
 
 #eval numLeaves (maxt 3)
 
+
+-- TODO: try directly in N, without R
 lemma numNodes_maxt (n : ℕ) :
     numNodes (maxt n) = (((3 : ℝ) ^ (n : ℝ))- 1) / 2 := by
   induction n with
@@ -94,6 +96,7 @@ lemma height_pos_not_nil (t : Tree23 α) :
   | node2 l a r l_ih r_ih => grind
   | node3 l a m a r l_ih m_ih r_ih => grind
 
+-- TODO: iff only if
 lemma height_zero_is_nil (t : Tree23 α) :
     height t = 0 → t = Tree23.nil := by
   induction t with

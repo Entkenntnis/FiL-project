@@ -7,6 +7,9 @@ universe u
 
 variable {α : Type u}
 
+-- investigate, add to grind
+attribute [grind] complete
+
 variable [LinearOrder α]
 
 inductive DeleteUp (α : Type u) where
@@ -275,12 +278,12 @@ lemma splitMin_complete (t : Tree23 α)
       unfold splitMin
       by_cases h : l = nil
       · grind[complete, deleteTree]
-      · grind[completeness_preservation_deleteTree_node21, complete, splitMin_height_complete ]
+      · grind[completeness_preservation_deleteTree_node21, complete, splitMin_height_complete]
   | node3 l a m a r l_ih m_ih r_ih =>
       unfold splitMin
       by_cases h : l = nil
       · grind[complete, deleteTree]
-      · grind[completeness_preservation_deleteTree_node31, complete, splitMin_height_complete ]
+      · grind[completeness_preservation_deleteTree_node31, complete, splitMin_height_complete]
 
 lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
     deleteHeight (del x t (by assumption)) = height t := by
@@ -310,6 +313,7 @@ lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
           · grind[complete]
   | node3 l a m b r l_ih m_ih r_ih =>
     unfold del
+    -- aesop (add norm [deleteHeight, complete, splitMin, splitMin_height_complete, max_height_node31, max_height_node32, max_height_node33] )
     split
     · grind[deleteHeight, complete]
     · split
