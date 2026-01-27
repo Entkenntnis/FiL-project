@@ -40,20 +40,15 @@ def not_T : Tree23s α → Bool
 lemma join_adj_leq_len (t3 : Tree23 α) (t1 : Tree23 α) (c : α) (a : α) (ts : Tree23s α) :
     (join_adj t3 c ts).len ≤ (join_adj t1 a (TTs t3 c ts)).len :=
   by
-    induction ts generalizing t3 c with
+    cases ts with
     | T t => grind[join_adj, len]
-    | TTs t4 d ts' ih =>
+    | TTs t4 d ts' =>
       cases ts' with
       | T t => grind[join_adj, len]
       | TTs t5 e ts'' =>
         unfold join_adj
         simp[len]
-        unfold join_adj at ih
-        simp at ih
-
         exact join_adj_leq_len t5 t4 e d ts''
-
-
 
 
 lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α)  :
@@ -71,9 +66,8 @@ lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α)  :
           simp
           simp [len] at *
           have : (join_adj t3 c ts'').len ≤ (join_adj t1 a (TTs t3 c ts'')).len := by
-            exact join_adj_leq_len t1 t3 a c ts''
+            exact join_adj_leq_len t3 t1 c a ts''
           omega
-
 
 
 def join_all : Tree23s α → Tree23 α
@@ -81,51 +75,4 @@ def join_all : Tree23s α → Tree23 α
 | TTs t a ts => join_all (join_adj t a ts)
 termination_by x => len x
 decreasing_by
-  induction ts generalizing t a with
-  | T _ => grind[join_adj, len]
-  | TTs t2 b ts' ih =>
-    specialize ih t2 b
-    have : (TTs t a (TTs t2 b ts')).len = (TTs t2 b ts').len + 1 := by grind[len]
-    rw[this]
-
-
-    unfold len
-
-    let ts := (TTs t2 b ts')
-    cases h :(join_adj t a ts) with
-    | T t => grind
-    | TTs rt ra rts =>
-      -- simp
-      -- apply lt_trans
-      -- have : ts = rts := by sorry
-      --rw[ih] at h
-      sorry
-
-
-
-
-def join_adj2 : (ts : Tree23s α) → not_T ts = true → Tree23s α
-| TTs t1 a (T t2), _ => T (node2 t1 a t2)
-| TTs t1 a (TTs t2 b (T t3)), _ => T (node3 t1 a t2 b t3)
-| TTs t1 a (TTs t2 b (TTs t3 c ts)), _ =>
-    TTs (node2 t1 a t2) b (join_adj2 (TTs t3 c ts) rfl)
-
-theorem join_adj2_decreases_length (ts : Tree23s α) (h : not_T ts = true) :
-  len (join_adj2 ts h) < len ts := by
-  match ts, h with
-  | TTs t1 a (T t2), _ =>
-    simp [join_adj2, len]
-  | TTs t1 a (TTs t2 b (T t3)), _ =>
-    simp [join_adj2, len]
-  | TTs t1 a (TTs t2 b (TTs t3 c ts)), h =>
-    simp [join_adj2, len]
-    have IH := join_adj2_decreases_length (TTs t3 c ts) rfl
-    have len_fact : len (TTs t3 c ts) = len ts + 1 := by simp [len]
-    omega
-
-def join_all2 : Tree23s α → Tree23 α
-| T t => t
-| TTs t a ts => join_all2 (join_adj2 (TTs t a ts) rfl)
-termination_by x => len x
-decreasing_by
-  apply join_adj2_decreases_length
+  exact join_adj_decreases_len t a ts
