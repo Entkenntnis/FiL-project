@@ -37,6 +37,24 @@ def not_T : Tree23s α → Bool
 | TTs _ _ _ => true
 
 
+lemma join_adj_leq_len (t3 : Tree23 α) (t1 : Tree23 α) (c : α) (a : α) (ts : Tree23s α) :
+    (join_adj t3 c ts).len ≤ (join_adj t1 a (TTs t3 c ts)).len :=
+  by
+    induction ts generalizing t3 c with
+    | T t => grind[join_adj, len]
+    | TTs t4 d ts' ih =>
+      cases ts' with
+      | T t => grind[join_adj, len]
+      | TTs t5 e ts'' =>
+        unfold join_adj
+        simp[len]
+        unfold join_adj at ih
+        simp at ih
+
+        exact join_adj_leq_len t5 t4 e d ts''
+
+
+
 
 lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α)  :
     len (join_adj t1 a ts) < len (TTs t1 a ts) :=
@@ -44,23 +62,17 @@ lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α)  :
     induction ts with
     | T _ => grind[join_adj, len]
     | TTs t2 b ts' ih =>
-
-
-        induction ts generalizing t1 a with
-        | T t3 => grind[join_adj, len]
-        | TTs t3 c ts ih2 =>
-          unfold len
-          split
-          · simp
-          · expose_names
-            unfold len
-            split
-            · simp
-            · unfold len
-              split
-              · simp
-              · expose_names
-                sorry
+        simp [len] at *
+        cases ts' with
+        | T t => grind[len, join_adj]
+        | TTs t3 c ts'' =>
+          simp [len] at *
+          unfold join_adj
+          simp
+          simp [len] at *
+          have : (join_adj t3 c ts'').len ≤ (join_adj t1 a (TTs t3 c ts'')).len := by
+            exact join_adj_leq_len t1 t3 a c ts''
+          omega
 
 
 
