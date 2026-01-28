@@ -1,4 +1,5 @@
-import FiLProject.Tree23.Basic
+
+import FiLProject.Tree23.Complete
 
 inductive Tree23s (α : Type u)
 | T (t : Tree23 α)
@@ -120,3 +121,59 @@ lemma list_correctness_3 (as : List α):
   induction as with
   | nil => rfl
   | cons a as ih => grind[leaves, inorder2, inorder]
+
+
+lemma list_completeness_1 (t1 : Tree23 α) (a : α) (ts : Tree23s α ) (n : ℕ) :
+    (∀ t ∈ trees (TTs t1 a ts), complete t ∧ height t = n) →
+    (∀ t ∈ trees (join_adj t1 a ts), complete t ∧ height t = n + 1) := by
+  intro h t ht
+  cases ts with
+  | T t2 =>
+    simp [join_adj, trees] at ht
+    rw [ht]
+    have ht1 : complete t1 ∧ height t1 = n := by
+      apply h
+      simp [trees]
+    have ht2 : complete t2 ∧ height t2 = n := by
+      apply h
+      simp [trees]
+    grind[complete]
+  | TTs t2 b ts' =>
+    cases ts' with
+    | T t3 =>
+      simp [join_adj, trees] at ht
+      rw [ht]
+      have ht1 : complete t1 ∧ height t1 = n := by
+        apply h; simp [trees]
+      have ht2 : complete t2 ∧ height t2 = n := by
+        apply h; simp [trees]
+      have ht3 : complete t3 ∧ height t3 = n := by
+        apply h; simp [trees]
+      grind[complete]
+    | TTs t3 c ts'' =>
+      simp [join_adj, trees] at ht
+      cases ht with
+      | inl heq =>
+        rw [heq]
+        have ht1 : complete t1 ∧ height t1 = n := by
+          apply h; simp [trees]
+        have ht2 : complete t2 ∧ height t2 = n := by
+          apply h; simp [trees]
+        grind[complete]
+      | inr hmem =>
+        have h' : ∀ t ∈ trees (TTs t3 c ts''), complete t ∧ height t = n := by
+          intro t' ht'
+          apply h
+          simp [trees] at ht' ⊢
+          grind
+        have ih := list_completeness_1 t3 c ts'' n h'
+        exact ih t hmem
+
+
+lemma list_completeness_2 (t1 : Tree23 α) (a : α) (ts : Tree23s α ) (n : ℕ) :
+    (∀ t ∈ trees (TTs t1 a ts), complete t ∧ height t = n) →
+    complete (join_all ts) := by
+  intro h
+  cases ts with
+  | T t => sorry
+  | TTs t a ts => sorry
