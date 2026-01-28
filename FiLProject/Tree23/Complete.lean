@@ -6,10 +6,27 @@ universe u
 
 variable {α : Type u}
 
+
 def complete : Tree23 α  → Bool
 | nil => true
 | node2 l _ r => height l = height r ∧ complete l ∧ complete r
 | node3 l _ m _ r => height l = height m ∧ height m = height r ∧ complete l ∧ complete m ∧ complete r
+
+@[simp, grind =]
+lemma complete_nil :
+    complete (nil : Tree23 α) = true := by
+  rfl
+
+@[simp, grind =]
+lemma complete_node2 :
+    complete (node2 l a r) = (height l = height r ∧ complete l ∧ complete r) := by
+  simp[complete]
+
+@[simp, grind =]
+lemma complete_node3 :
+    complete (node3 l a m b r) = (height l = height m ∧ height m = height r ∧ complete l ∧ complete m ∧ complete r) := by
+  simp[complete]
+
 
 lemma complete_height_numNodes (t : Tree23 α) :
     complete t → 2 ^ (height t) ≤ numNodes t + 1 := by
