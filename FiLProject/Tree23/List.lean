@@ -32,10 +32,6 @@ def join_adj (t1 : Tree23 α) (a : α) (ts : Tree23s α) : Tree23s α :=
     | T t3 => T (node3 t1 a t2 b t3)
     | TTs t3 c ts => TTs (node2 t1 a t2) b (join_adj t3 c ts)
 
-def not_T : Tree23s α → Bool
-| T _ => false
-| TTs _ _ _ => true
-
 
 lemma join_adj_leq_len (t3 : Tree23 α) (t1 : Tree23 α) (c : α) (a : α) (ts : Tree23s α) :
     (join_adj t3 c ts).len ≤ (join_adj t1 a (TTs t3 c ts)).len :=
@@ -76,3 +72,51 @@ def join_all : Tree23s α → Tree23 α
 termination_by x => len x
 decreasing_by
   exact join_adj_decreases_len t a ts
+
+def not_T : Tree23s α → Bool
+| T _ => false
+| TTs _ _ _ => true
+
+def leaves : List α → Tree23s α
+| List.nil => T nil
+| List.cons a as => TTs nil a (leaves as)
+
+def tree23_of_list (as : List α) : Tree23 α :=
+  join_all (leaves as)
+
+lemma list_correctness_1 (t1 : Tree23 α) (a: α) (ts: Tree23s α):
+    inorder2 (join_adj t1 a ts) = inorder2 (TTs t1 a ts) := by
+  cases ts with
+  | T t =>
+    grind[join_adj, inorder2, inorder]
+  | TTs t2 b ts' =>
+    cases ts' with
+    | T t => grind[join_adj, inorder2, inorder]
+    | TTs t3 c ts =>
+      simp[join_adj]
+      unfold inorder2
+      have : (join_adj t3 c ts).inorder2 = (TTs t3 c ts).inorder2 := by exact list_correctness_1 t3 c ts
+      rw [this]
+      grind[inorder, inorder2]
+
+lemma list_correctness_2:
+    (ts: Tree23s α) → inorder (join_all ts) = inorder2 ts := by
+  intro ts
+  cases ts with
+  | T t => grind[inorder, join_all, inorder2]
+  | TTs t a ts =>
+    unfold join_all
+    have : (TTs t a ts).inorder2 = inorder2 (join_adj t a ts) := by exact Eq.symm (list_correctness_1 t a ts)
+    rw[this]
+    exact list_correctness_2 (join_adj t a ts)
+termination_by x => len x
+decreasing_by
+  exact join_adj_decreases_len t a ts
+
+lemma list_correctness_3 (as : List α):
+    inorder (tree23_of_list as) = as := by
+  unfold tree23_of_list
+  rw[list_correctness_2]
+  induction as with
+  | nil => rfl
+  | cons a as ih => grind[leaves, inorder2, inorder]
