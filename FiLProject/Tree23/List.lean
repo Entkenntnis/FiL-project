@@ -284,4 +284,7 @@ lemma tree23_of_list_running_time_3:
     unfold T_leaves
     unfold leaves
     unfold T_tree23_of_list at ih
-    grind[leaves, T_join_all, T_leaves, tree23_of_list_running_time_2]
+    have h1 := tree23_of_list_running_time_2 (TTs nil head (leaves tail))
+    simp
+    unfold T_join_all
+    sorry
