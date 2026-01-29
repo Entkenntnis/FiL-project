@@ -173,7 +173,7 @@ lemma list_completeness_1 (t1 : Tree23 α) (a : α) (ts : Tree23s α ) (n : ℕ)
         exact ih t hmem
 
 
-lemma list_completeness_2 (n : ℕ) :
+lemma list_completeness_2 (n : ℕ):
     (ts : Tree23s α ) → (∀ t ∈ trees ts, complete t ∧ height t = n) →
     complete (join_all ts) := by
   intro ts h
@@ -278,5 +278,10 @@ lemma tree23_of_list_running_time_3:
     (as : List α) → T_tree23_of_list as ≤ 3 * as.length + 3 := by
   intro as
   induction as with
-  | nil => simp; grind[T_tree23_of_list]
-  | cons head tail ih => sorry
+  | nil => grind[T_tree23_of_list, T_leaves, leaves, T_join_all]
+  | cons head tail ih =>
+    unfold T_tree23_of_list
+    unfold T_leaves
+    unfold leaves
+    unfold T_tree23_of_list at ih
+    grind[leaves, T_join_all, T_leaves, tree23_of_list_running_time_2]
