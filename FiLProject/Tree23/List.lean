@@ -170,10 +170,36 @@ lemma list_completeness_1 (t1 : Tree23 α) (a : α) (ts : Tree23s α ) (n : ℕ)
         exact ih t hmem
 
 
-lemma list_completeness_2 (t1 : Tree23 α) (a : α) (ts : Tree23s α ) (n : ℕ) :
-    (∀ t ∈ trees (TTs t1 a ts), complete t ∧ height t = n) →
+lemma list_completeness_2 (ts : Tree23s α ) (n : ℕ) :
+    (ts : Tree23s α ) → (∀ t ∈ trees ts, complete t ∧ height t = n) →
     complete (join_all ts) := by
-  intro h
-  cases ts with
-  | T t => sorry
-  | TTs t a ts => sorry
+  intro ts h
+  induction ts with
+  | T t2 =>
+    simp [join_all]
+    have ht2 : complete t2 ∧ height t2 = n := by
+      apply h
+      simp [trees]
+    exact ht2.1
+  | TTs t2 b ts' ih =>
+    induction ts' with
+    | T t3 =>
+      simp[join_all, join_adj]
+      have ht2 : complete t2 ∧ height t2 = n := by
+        apply h
+        simp [trees]
+      have ht3 : complete t3 ∧ height t3 = n := by
+        apply h
+        simp [trees]
+      grind
+    | TTs t3 c ts'' ih2 =>
+      have h1 : ∀ t ∈ trees (join_adj t2 b (TTs t3 c ts'')), complete t ∧ height t = n + 1 :=
+        by exact list_completeness_1 t2 b (TTs t3 c ts'') n h
+      simp[join_all]
+      have oih := list_completeness_2 (join_adj t2 b (TTs t3 c ts'')) (n + 1)
+      grind
+termination_by x => len x
+decreasing_by
+  expose_names
+
+  --exact join_adj_decreases_len t a (join_adj t2 b (TTs t3 c ts''))
