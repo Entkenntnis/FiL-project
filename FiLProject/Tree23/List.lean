@@ -273,18 +273,19 @@ termination_by ts => len ts
 decreasing_by
   exact join_adj_decreases_len t a ts
 
+lemma tree23_of_list_running_time_3 (as : List α):
+    T_leaves as ≤ as.length + 1 := by
+  induction as <;> grind[T_leaves]
 
-lemma tree23_of_list_running_time_3:
+lemma tree23_of_list_running_time_4 (as : List α):
+    len (leaves as) = as.length + 1:= by
+  induction as <;> grind[len, leaves]
+
+lemma tree23_of_list_running_time:
     (as : List α) → T_tree23_of_list as ≤ 3 * as.length + 3 := by
   intro as
-  induction as with
-  | nil => grind[T_tree23_of_list, T_leaves, leaves, T_join_all]
-  | cons head tail ih =>
-    unfold T_tree23_of_list
-    unfold T_leaves
-    unfold leaves
-    unfold T_tree23_of_list at ih
-    have h1 := tree23_of_list_running_time_2 (TTs nil head (leaves tail))
-    simp
-    unfold T_join_all
-    sorry
+  unfold T_tree23_of_list
+  have h1 := tree23_of_list_running_time_2 (leaves as)
+  have h2 := tree23_of_list_running_time_3 as
+  rw [tree23_of_list_running_time_4] at h1
+  grind
