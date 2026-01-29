@@ -68,7 +68,24 @@ lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α):
 
 
 lemma join_adj_decreases_len_by_half (t1 : Tree23 α) (a : α) (ts : Tree23s α):
-    len (join_adj t1 a ts) < len (TTs t1 a ts) / 2 := by sorry
+    len (join_adj t1 a ts) ≤ len (TTs t1 a ts) / 2 := by
+  cases ts with
+  | T t => grind[join_adj, len]
+  | TTs t2 b ts' =>
+    simp [len] at *
+    cases ts' with
+    | T t => grind[len, join_adj]
+    | TTs t3 c ts'' =>
+      simp [len] at *
+      unfold join_adj
+      simp
+      simp [len] at *
+      have := join_adj_decreases_len_by_half t3 c ts''
+      calc
+        (join_adj t3 c ts'').len + 1
+        _ ≤ (TTs t3 c ts'').len / 2 + 1 := by grind
+      simp[len]
+      omega
 
 def join_all : Tree23s α → Tree23 α
 | T t => t
@@ -258,6 +275,12 @@ lemma tree23_of_list_running_time_1 (t : Tree23 α) (a : α) (ts: Tree23s α):
       have hr := tree23_of_list_running_time_1 t3 c ts''
       grind
 
+lemma helper_nat_rel (n : ℕ) (h : n ≥ 1):
+    n / 2 + n + 1 ≤ 2 * n := by
+  induction n with
+  | zero => grind
+  | succ n _ => grind
+
 lemma tree23_of_list_running_time_2:
     (ts: Tree23s α) → T_join_all ts ≤ 2 * len ts := by
   intro ts
@@ -268,7 +291,15 @@ lemma tree23_of_list_running_time_2:
     have h1 := tree23_of_list_running_time_1 t a ts
     have h2 := tree23_of_list_running_time_2 (join_adj t a ts)
     have h3 := join_adj_decreases_len_by_half t a ts
-    grind
+    calc
+      T_join_adj t a ts + (join_adj t a ts).T_join_all + 1
+      _ ≤ (TTs t a ts).len / 2 + (join_adj t a ts).T_join_all + 1 := by grind
+      _ ≤ (TTs t a ts).len / 2 + 2 * (join_adj t a ts).len + 1 := by grind
+      _ ≤ (TTs t a ts).len / 2 + 2 * (join_adj t a ts).len + 1 := by grind
+      _ ≤ (TTs t a ts).len / 2 + (TTs t a ts).len + 1 := by grind
+      _ ≤ 2 * (TTs t a ts).len := by
+        apply helper_nat_rel
+        grind[len]
 termination_by ts => len ts
 decreasing_by
   exact join_adj_decreases_len t a ts
