@@ -48,7 +48,7 @@ lemma join_adj_leq_len (t3 : Tree23 α) (t1 : Tree23 α) (c : α) (a : α) (ts :
         exact join_adj_leq_len t5 t4 e d ts''
 
 
-lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α)  :
+lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α):
     len (join_adj t1 a ts) < len (TTs t1 a ts) :=
   by
     induction ts with
@@ -66,6 +66,9 @@ lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α)  :
             exact join_adj_leq_len t3 t1 c a ts''
           omega
 
+
+lemma join_adj_decreases_len_by_half (t1 : Tree23 α) (a : α) (ts : Tree23s α):
+    len (join_adj t1 a ts) < len (TTs t1 a ts) / 2 := by sorry
 
 def join_all : Tree23s α → Tree23 α
 | T t => t
@@ -170,7 +173,7 @@ lemma list_completeness_1 (t1 : Tree23 α) (a : α) (ts : Tree23s α ) (n : ℕ)
         exact ih t hmem
 
 
-lemma list_completeness_2 (ts : Tree23s α ) (n : ℕ) :
+lemma list_completeness_2 (n : ℕ) :
     (ts : Tree23s α ) → (∀ t ∈ trees ts, complete t ∧ height t = n) →
     complete (join_all ts) := by
   intro ts h
@@ -196,14 +199,84 @@ lemma list_completeness_2 (ts : Tree23s α ) (n : ℕ) :
       have h1 : ∀ t ∈ trees (join_adj t2 b (TTs t3 c ts'')), complete t ∧ height t = n + 1 :=
         by exact list_completeness_1 t2 b (TTs t3 c ts'') n h
       simp[join_all]
-      have oih := list_completeness_2 (join_adj t2 b (TTs t3 c ts'')) (n + 1)
-      grind
-termination_by x => len x
+      exact list_completeness_2 (n + 1) (join_adj t2 b (TTs t3 c ts'')) h1
+termination_by ts => len ts
 decreasing_by
+  grind[join_adj_decreases_len]
 
-  expose_names
-  --simp_all only []
-  simp_wf
-  convert join_adj_decreases_len t2 b (TTs t3 c ts'')
-  sorry
-  --exact join_adj_decreases_len t2 b (TTs t3 c ts'')
+
+lemma list_completeness_3 (as : List α):
+    ∀ t ∈ (trees (leaves as)), complete t ∧ height t = 0 := by
+  induction as with
+  | nil => grind[leaves, trees]
+  | cons head tail ih =>
+    intro t ht
+    unfold trees leaves at ht
+    simp at ht
+    grind
+
+lemma list_completeness_4 (as : List α):
+    complete (tree23_of_list as) := by
+  unfold tree23_of_list
+  apply list_completeness_2 0
+  grind[list_completeness_3]
+
+def T_join_adj (_ : Tree23 α) (_ : α) (ts : Tree23s α) : ℕ :=
+  match ts with
+  | T _ => 1
+  | TTs _ _ ts' =>
+    match ts' with
+    | T _ => 1
+    | TTs t a ts => T_join_adj t a ts + 1
+
+def T_join_all: Tree23s α → ℕ
+| T _ => 1
+| TTs t a ts => (T_join_adj t a ts) + T_join_all (join_adj t a ts) + 1
+termination_by ts => len ts
+decreasing_by
+  exact join_adj_decreases_len t a ts
+
+def T_leaves: List α → ℕ
+| [] => 1
+| List.cons _ xs => T_leaves xs + 1
+
+def T_tree23_of_list (as : List α): ℕ :=
+  T_leaves as + T_join_all (leaves as)
+
+lemma tree23_of_list_running_time_1 (t : Tree23 α) (a : α) (ts: Tree23s α):
+    T_join_adj t a ts ≤ len (TTs t a ts) / 2 := by
+  cases ts with
+  | T t => grind[T_join_adj, len]
+  | TTs t2 b ts' =>
+    unfold T_join_adj
+    cases ts' with
+    | T t => grind[len]
+    | TTs t3 c ts'' =>
+      simp
+      unfold len
+      unfold len
+      have hr := tree23_of_list_running_time_1 t3 c ts''
+      grind
+
+lemma tree23_of_list_running_time_2:
+    (ts: Tree23s α) → T_join_all ts ≤ 2 * len ts := by
+  intro ts
+  cases ts with
+  | T t => grind[len, T_join_all]
+  | TTs t a ts =>
+    unfold T_join_all
+    have h1 := tree23_of_list_running_time_1 t a ts
+    have h2 := tree23_of_list_running_time_2 (join_adj t a ts)
+    have h3 := join_adj_decreases_len_by_half t a ts
+    grind
+termination_by ts => len ts
+decreasing_by
+  exact join_adj_decreases_len t a ts
+
+
+lemma tree23_of_list_running_time_3:
+    (as : List α) → T_tree23_of_list as ≤ 3 * as.length + 3 := by
+  intro as
+  induction as with
+  | nil => simp; grind[T_tree23_of_list]
+  | cons head tail ih => sorry
