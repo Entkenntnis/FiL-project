@@ -17,11 +17,13 @@ def isin : Tree23 α → α → Bool
                               if x < b then (isin m x) else
                                 if x = b then true else (isin r x)
 
+@[grind]
 def setTree : (t : Tree23 α) → Set α
 | Tree23.nil => ∅
 | Tree23.node2 l a r => (setTree l) ∪ {a} ∪ (setTree r)
 | Tree23.node3 l a m b r => (setTree l) ∪ {a} ∪ (setTree m) ∪ {b} ∪ (setTree r)
 
+@[grind]
 def searchTree : (t : Tree23 α) → Prop
 | Tree23.nil => True
 | Tree23.node2 l a r => (∀ x ∈ (setTree l), x < a) ∧ (∀ x ∈ (setTree r), a < x) ∧ searchTree l ∧ searchTree r
