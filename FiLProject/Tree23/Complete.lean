@@ -7,6 +7,7 @@ universe u
 variable {α : Type u}
 
 
+@[grind]
 def complete : Tree23 α  → Bool
 | nil => true
 | node2 l _ r => height l = height r ∧ complete l ∧ complete r

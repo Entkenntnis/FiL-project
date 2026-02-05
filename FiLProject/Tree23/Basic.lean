@@ -60,6 +60,7 @@ def minHeight : Tree23 α  → ℕ
 | node2 l _ r => min (height l) (height r) + 1
 | node3 l _ m _ r => min (height l) (min (height m) (height r)) + 1
 
+@[grind]
 def inorder : Tree23 α  → List α
 | nil => []
 | node2 l a r => inorder l ++ [a] ++ inorder r

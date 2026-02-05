@@ -13,18 +13,22 @@ universe u
 
 variable {α : Type u}
 
+@[grind]
 def len :  Tree23s α → ℕ
 | T _ => 1
 | TTs _ _ ts => len ts + 1
 
+@[grind]
 def trees : Tree23s α → Set (Tree23 α)
 | T t => {t}
 | TTs t _ ts => {t} ∪ trees ts
 
+@[grind]
 def inorder2 : Tree23s α → List α
 | T t => inorder t
 | TTs t a ts => inorder t ++ [a] ++ inorder2 ts
 
+@[grind]
 def join_adj (t1 : Tree23 α) (a : α) (ts : Tree23s α) : Tree23s α :=
   match ts with
   | T t2 => T (node2 t1 a t2)
@@ -33,71 +37,52 @@ def join_adj (t1 : Tree23 α) (a : α) (ts : Tree23s α) : Tree23s α :=
     | T t3 => T (node3 t1 a t2 b t3)
     | TTs t3 c ts => TTs (node2 t1 a t2) b (join_adj t3 c ts)
 
-
+@[grind! .]
 lemma join_adj_leq_len (t3 : Tree23 α) (t1 : Tree23 α) (c : α) (a : α) (ts : Tree23s α) :
-    (join_adj t3 c ts).len ≤ (join_adj t1 a (TTs t3 c ts)).len :=
-  by
-    cases ts with
-    | T t => grind[join_adj, len]
-    | TTs t4 d ts' =>
-      cases ts' with
-      | T t => grind[join_adj, len]
-      | TTs t5 e ts'' =>
-        unfold join_adj
-        simp[len]
-        exact join_adj_leq_len t5 t4 e d ts''
+    (join_adj t3 c ts).len ≤ (join_adj t1 a (TTs t3 c ts)).len := by
+  cases ts with
+  | T t => grind
+  | TTs t4 d ts' =>
+    cases ts' with
+    | T t => grind
+    | TTs t5 e ts'' =>
+      -- recursive lemma necessary, grind would not find
+      have := join_adj_leq_len t5 t4 e d ts''
+      grind
 
-
+@[grind! .]
 lemma join_adj_decreases_len (t1 : Tree23 α) (a : α) (ts : Tree23s α):
     len (join_adj t1 a ts) < len (TTs t1 a ts) :=
   by
     induction ts with
-    | T _ => grind[join_adj, len]
-    | TTs t2 b ts' ih =>
-        simp [len] at *
-        cases ts' with
-        | T t => grind[len, join_adj]
-        | TTs t3 c ts'' =>
-          simp [len] at *
-          unfold join_adj
-          simp
-          simp [len] at *
-          have : (join_adj t3 c ts'').len ≤ (join_adj t1 a (TTs t3 c ts'')).len := by
-            exact join_adj_leq_len t3 t1 c a ts''
-          omega
+    | T _ => grind
+    | TTs t2 b ts' ih => cases ts' <;> grind
 
 
 lemma join_adj_decreases_len_by_half (t1 : Tree23 α) (a : α) (ts : Tree23s α):
     len (join_adj t1 a ts) ≤ len (TTs t1 a ts) / 2 := by
   cases ts with
-  | T t => grind[join_adj, len]
+  | T t => grind
   | TTs t2 b ts' =>
-    simp [len] at *
     cases ts' with
-    | T t => grind[len, join_adj]
+    | T t => grind
     | TTs t3 c ts'' =>
-      simp [len] at *
-      unfold join_adj
-      simp
-      simp [len] at *
+      -- again, put recursive application into context
       have := join_adj_decreases_len_by_half t3 c ts''
-      calc
-        (join_adj t3 c ts'').len + 1
-        _ ≤ (TTs t3 c ts'').len / 2 + 1 := by grind
-      simp[len]
-      omega
+      grind
 
+@[grind]
 def join_all : Tree23s α → Tree23 α
 | T t => t
 | TTs t a ts => join_all (join_adj t a ts)
 termination_by x => len x
-decreasing_by
-  exact join_adj_decreases_len t a ts
+decreasing_by grind
 
 def not_T : Tree23s α → Bool
 | T _ => false
 | TTs _ _ _ => true
 
+@[grind]
 def leaves : List α → Tree23s α
 | List.nil => T nil
 | List.cons a as => TTs nil a (leaves as)
@@ -105,89 +90,54 @@ def leaves : List α → Tree23s α
 def tree23_of_list (as : List α) : Tree23 α :=
   join_all (leaves as)
 
+@[grind! .]
 lemma list_correctness_1 (t1 : Tree23 α) (a: α) (ts: Tree23s α):
     inorder2 (join_adj t1 a ts) = inorder2 (TTs t1 a ts) := by
   cases ts with
-  | T t =>
-    grind[join_adj, inorder2, inorder]
+  | T t => grind
   | TTs t2 b ts' =>
     cases ts' with
-    | T t => grind[join_adj, inorder2, inorder]
+    | T t => grind
     | TTs t3 c ts =>
-      simp[join_adj]
-      unfold inorder2
-      have : (join_adj t3 c ts).inorder2 = (TTs t3 c ts).inorder2 := by exact list_correctness_1 t3 c ts
-      rw [this]
-      grind[inorder, inorder2]
+      -- recursive
+      have := list_correctness_1 t3 c ts
+      grind
 
 lemma list_correctness_2:
     (ts: Tree23s α) → inorder (join_all ts) = inorder2 ts := by
   intro ts
   cases ts with
-  | T t => grind[inorder, join_all, inorder2]
+  | T t => grind
   | TTs t a ts =>
-    unfold join_all
-    have : (TTs t a ts).inorder2 = inorder2 (join_adj t a ts) := by exact Eq.symm (list_correctness_1 t a ts)
-    rw[this]
-    exact list_correctness_2 (join_adj t a ts)
+    -- recursive
+    have := list_correctness_2 (join_adj t a ts)
+    grind
 termination_by x => len x
-decreasing_by
-  exact join_adj_decreases_len t a ts
+decreasing_by grind
 
 lemma list_correctness_3 (as : List α):
     inorder (tree23_of_list as) = as := by
+  -- explicit reuse of previous lemma
   unfold tree23_of_list
   rw[list_correctness_2]
-  induction as with
-  | nil => rfl
-  | cons a as ih => grind[leaves, inorder2, inorder]
-
+  induction as <;> grind
 
 lemma list_completeness_1 (t1 : Tree23 α) (a : α) (ts : Tree23s α ) (n : ℕ) :
     (∀ t ∈ trees (TTs t1 a ts), complete t ∧ height t = n) →
     (∀ t ∈ trees (join_adj t1 a ts), complete t ∧ height t = n + 1) := by
   intro h t ht
   cases ts with
-  | T t2 =>
-    simp [join_adj, trees] at ht
-    rw [ht]
-    have ht1 : complete t1 ∧ height t1 = n := by
-      apply h
-      simp [trees]
-    have ht2 : complete t2 ∧ height t2 = n := by
-      apply h
-      simp [trees]
-    grind[complete]
+  | T t2 => grind
   | TTs t2 b ts' =>
     cases ts' with
-    | T t3 =>
-      simp [join_adj, trees] at ht
-      rw [ht]
-      have ht1 : complete t1 ∧ height t1 = n := by
-        apply h; simp [trees]
-      have ht2 : complete t2 ∧ height t2 = n := by
-        apply h; simp [trees]
-      have ht3 : complete t3 ∧ height t3 = n := by
-        apply h; simp [trees]
-      grind[complete]
+    | T t3 => grind
     | TTs t3 c ts'' =>
-      simp [join_adj, trees] at ht
       cases ht with
-      | inl heq =>
-        rw [heq]
-        have ht1 : complete t1 ∧ height t1 = n := by
-          apply h; simp [trees]
-        have ht2 : complete t2 ∧ height t2 = n := by
-          apply h; simp [trees]
-        grind[complete]
+      | inl heq => grind
       | inr hmem =>
-        have h' : ∀ t ∈ trees (TTs t3 c ts''), complete t ∧ height t = n := by
-          intro t' ht'
-          apply h
-          simp [trees] at ht' ⊢
-          grind
-        have ih := list_completeness_1 t3 c ts'' n h'
-        exact ih t hmem
+        -- recursive
+        have ih := list_completeness_1 t3 c ts'' n (by grind)
+        grind
 
 
 lemma list_completeness_2 (n : ℕ):
@@ -195,31 +145,17 @@ lemma list_completeness_2 (n : ℕ):
     complete (join_all ts) := by
   intro ts h
   cases ts with
-  | T t2 =>
-    simp [join_all]
-    have ht2 : complete t2 ∧ height t2 = n := by
-      apply h
-      simp [trees]
-    exact ht2.1
+  | T t2 => grind
   | TTs t2 b ts' =>
     cases ts' with
-    | T t3 =>
-      simp[join_all, join_adj]
-      have ht2 : complete t2 ∧ height t2 = n := by
-        apply h
-        simp [trees]
-      have ht3 : complete t3 ∧ height t3 = n := by
-        apply h
-        simp [trees]
-      grind
+    | T t3 => grind
     | TTs t3 c ts'' =>
       have h1 : ∀ t ∈ trees (join_adj t2 b (TTs t3 c ts'')), complete t ∧ height t = n + 1 :=
         by exact list_completeness_1 t2 b (TTs t3 c ts'') n h
       simp[join_all]
       exact list_completeness_2 (n + 1) (join_adj t2 b (TTs t3 c ts'')) h1
 termination_by ts => len ts
-decreasing_by
-  grind[join_adj_decreases_len]
+decreasing_by grind
 
 
 lemma list_completeness_3 (as : List α):
@@ -250,8 +186,7 @@ def T_join_all: Tree23s α → ℕ
 | T _ => 1
 | TTs t a ts => (T_join_adj t a ts) + T_join_all (join_adj t a ts) + 1
 termination_by ts => len ts
-decreasing_by
-  exact join_adj_decreases_len t a ts
+decreasing_by grind
 
 def T_leaves: List α → ℕ
 | [] => 1
@@ -263,11 +198,11 @@ def T_tree23_of_list (as : List α): ℕ :=
 lemma tree23_of_list_running_time_1 (t : Tree23 α) (a : α) (ts: Tree23s α):
     T_join_adj t a ts ≤ len (TTs t a ts) / 2 := by
   cases ts with
-  | T t => grind[T_join_adj, len]
+  | T t => grind[T_join_adj]
   | TTs t2 b ts' =>
     unfold T_join_adj
     cases ts' with
-    | T t => grind[len]
+    | T t => grind
     | TTs t3 c ts'' =>
       simp
       unfold len
@@ -285,7 +220,7 @@ lemma tree23_of_list_running_time_2:
     (ts: Tree23s α) → T_join_all ts ≤ 2 * len ts := by
   intro ts
   cases ts with
-  | T t => grind[len, T_join_all]
+  | T t => grind[T_join_all]
   | TTs t a ts =>
     unfold T_join_all
     have h1 := tree23_of_list_running_time_1 t a ts
@@ -299,10 +234,9 @@ lemma tree23_of_list_running_time_2:
       _ ≤ (TTs t a ts).len / 2 + (TTs t a ts).len + 1 := by grind
       _ ≤ 2 * (TTs t a ts).len := by
         apply helper_nat_rel
-        grind[len]
+        grind
 termination_by ts => len ts
-decreasing_by
-  exact join_adj_decreases_len t a ts
+decreasing_by grind
 
 lemma tree23_of_list_running_time_3 (as : List α):
     T_leaves as ≤ as.length + 1 := by
@@ -310,7 +244,7 @@ lemma tree23_of_list_running_time_3 (as : List α):
 
 lemma tree23_of_list_running_time_4 (as : List α):
     len (leaves as) = as.length + 1:= by
-  induction as <;> grind[len, leaves]
+  induction as <;> grind
 
 lemma tree23_of_list_running_time:
     (as : List α) → T_tree23_of_list as ≤ 3 * as.length + 3 := by
