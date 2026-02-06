@@ -84,17 +84,18 @@ def splitMin : (t : Tree23 α) → complete t → t ≠ nil → α × DeleteUp �
     -- extract the smallest element merge reduced left side with right side
     -- ah, that is why this is called splitMin ...
     let (x, l') := splitMin l (by grind  ) (by assumption)
-    have hr : r ≠ nil := by grind[height_pos_not_nil, complete]
+    have hr : r ≠ nil := by grind
     (x, node21 l' a r (by assumption))
 | node3 l a m b r, _, _ =>
   if h: l = nil then
     (a, DeleteUp.eq (node2 nil b nil))
   else
     let (x, l') := splitMin l (by grind  ) (by assumption)
-    have hr : r ≠ nil := by grind[height_pos_not_nil, complete]
-    have hm : m ≠ nil := by grind[height_pos_not_nil, complete]
+    have hr : r ≠ nil := by grind
+    have hm : m ≠ nil := by grind
     (x, node31 l' a m b r (by assumption) (by assumption))
 
+@[grind]
 def del : α → (t : Tree23 α) →  complete t → DeleteUp α
 | _, nil, h => DeleteUp.eq Tree23.nil
 | x, node2 l a r, h =>
@@ -212,7 +213,7 @@ lemma completeness_preservation_deleteTree_node33 (a b : α) (l m : Tree23 α) (
 
 omit [LinearOrder α] in
 lemma max_height_node21 (a : α) (r : Tree23 α)  (l' : DeleteUp α) (h : 0 < height r):
-    deleteHeight (node21 l' a r (by grind[height_pos_not_nil])) = max (deleteHeight l') (height r) + 1 := by
+    deleteHeight (node21 l' a r (by grind)) = max (deleteHeight l') (height r) + 1 := by
   unfold deleteHeight
   cases l' with
   | eq l => grind
@@ -222,7 +223,7 @@ lemma max_height_node21 (a : α) (r : Tree23 α)  (l' : DeleteUp α) (h : 0 < he
 
 omit [LinearOrder α] in
 lemma max_height_node22 (a : α) (l : Tree23 α)  (r' : DeleteUp α) (h : 0 < height l):
-    deleteHeight (node22 l a r' (by grind[height_pos_not_nil])) = max (deleteHeight r') (height l) + 1 := by
+    deleteHeight (node22 l a r' (by grind)) = max (deleteHeight r') (height l) + 1 := by
   unfold deleteHeight
   cases r' with
   | eq l => grind
@@ -232,7 +233,7 @@ lemma max_height_node22 (a : α) (l : Tree23 α)  (r' : DeleteUp α) (h : 0 < he
 
 omit [LinearOrder α] in
 lemma max_height_node31 (a b : α) (m r : Tree23 α) (l' : DeleteUp α) (hr : 0 < height r) (hm : 0 < height m) :
-    deleteHeight (node31 l' a m b r (by grind[height_pos_not_nil]) (by grind[height_pos_not_nil])) = max (deleteHeight l') (max (height m) (height r)) + 1 := by
+    deleteHeight (node31 l' a m b r (by grind) (by grind)) = max (deleteHeight l') (max (height m) (height r)) + 1 := by
   unfold deleteHeight
   cases l' with
   | eq t => grind
@@ -242,7 +243,7 @@ lemma max_height_node31 (a b : α) (m r : Tree23 α) (l' : DeleteUp α) (hr : 0 
 
 omit [LinearOrder α] in
 lemma max_height_node32 (a b : α) (l r : Tree23 α) (m' : DeleteUp α) (hl : 0 < height l) (hr : 0 < height r) :
-    deleteHeight (node32 l a m' b r (by grind[height_pos_not_nil]) (by grind[height_pos_not_nil])) = max (deleteHeight m') (max (height l) (height r)) + 1 := by
+    deleteHeight (node32 l a m' b r (by grind) (by grind)) = max (deleteHeight m') (max (height l) (height r)) + 1 := by
   unfold deleteHeight
   cases m' with
   | eq t => grind
@@ -252,7 +253,7 @@ lemma max_height_node32 (a b : α) (l r : Tree23 α) (m' : DeleteUp α) (hl : 0 
 
 omit [LinearOrder α] in
 lemma max_height_node33 (a b : α) (l m : Tree23 α) (r' : DeleteUp α) (hl : 0 < height l) (hm : 0 < height m) :
-    deleteHeight (node33 l a m b r' (by grind[height_pos_not_nil]) (by grind[height_pos_not_nil])) = max (deleteHeight r') (max (height l) (height m)) + 1 := by
+    deleteHeight (node33 l a m b r' (by grind) (by grind)) = max (deleteHeight r') (max (height l) (height m)) + 1 := by
   unfold deleteHeight
   cases r' with
   | eq t => grind
@@ -262,7 +263,7 @@ lemma max_height_node33 (a b : α) (l m : Tree23 α) (r' : DeleteUp α) (hl : 0 
 
 lemma splitMin_height_complete (t : Tree23 α )
   (hct: complete t) (hht : 0 < height t) :
-    deleteHeight (splitMin t hct (by grind[height_pos_not_nil])).2 = height t := by
+    deleteHeight (splitMin t hct (by grind)).2 = height t := by
   induction t with
   | nil => grind
   | node2 l a r l_ih r_ih =>
@@ -276,7 +277,7 @@ lemma splitMin_height_complete (t : Tree23 α )
 
 lemma splitMin_complete (t : Tree23 α)
   (hct : complete t) (hht : 0 < height t) :
-    complete (deleteTree (splitMin t hct (by grind[height_pos_not_nil])).2) := by
+    complete (deleteTree (splitMin t hct (by grind)).2) := by
   induction t with
   | nil => grind
   | node2 l a r l_ih r_ih =>
@@ -301,11 +302,11 @@ lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
       · split
         · expose_names
           rw[max_height_node22]
-          · have hr: r ≠ nil := by grind[complete, height]
+          · have hr: r ≠ nil := by grind[height]
             have : deleteHeight (splitMin r (by grind  ) hr).2 = height r := by
               rw[splitMin_height_complete]
               grind
-            grind[deleteHeight, complete]
+            grind
           · grind
         · grind[max_height_node22]
   | node3 l a m b r l_ih m_ih r_ih =>
@@ -335,20 +336,17 @@ lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
               grind
               · grind
               · grind
-            · rw[max_height_node33]
-              · grind
-              · grind
-              · grind
+            · grind[max_height_node33]
 
 
 lemma complete_complete_del (t : Tree23 α) (x : α) (h : complete t):
     complete (deleteTree (del x t h)) := by
   induction t with
-  | nil => grind[ del]
+  | nil => grind
   | node2 l a r l_ih r_ih =>
-      grind[completeness_preservation_deleteTree_node21, completeness_preservation_deleteTree_node22, complete_deleteHeight, splitMin_height_complete, splitMin_complete, del]
+      grind[completeness_preservation_deleteTree_node21, completeness_preservation_deleteTree_node22, complete_deleteHeight, splitMin_height_complete, splitMin_complete]
   | node3 l a m b r l_ih m_ih r_ih =>
-      grind[completeness_preservation_deleteTree_node31, completeness_preservation_deleteTree_node32, completeness_preservation_deleteTree_node33, complete_deleteHeight, splitMin_height_complete, splitMin_complete, del]
+      grind[completeness_preservation_deleteTree_node31, completeness_preservation_deleteTree_node32, completeness_preservation_deleteTree_node33, complete_deleteHeight, splitMin_height_complete, splitMin_complete]
 
 lemma delete_completeness_preservation (t : Tree23 α) (x : α) (h : complete t):
     complete (delete x t h) := by
@@ -361,6 +359,7 @@ lemma delete_completeness_preservation (t : Tree23 α) (x : α) (h : complete t)
 
 -- first prove a helper
 omit [LinearOrder α] in
+@[grind]
 lemma node21_preserves_members
   (l_up : DeleteUp α)
   (a el: α)
@@ -369,7 +368,7 @@ lemma node21_preserves_members
   (hx : ∀ x: α, x ∈ setTree (deleteTree l_up) → x ∈ setTree l):
     el ∈ setTree (deleteTree (node21 l_up a r hr)) → el ∈ setTree (node2 l a r) := by
   cases leq : l_up
-  · grind[node21]
+  · grind
   · simp[node21]
     cases r with
     | nil => grind
@@ -381,6 +380,7 @@ lemma node21_preserves_members
 
 
 omit [LinearOrder α] in
+@[grind]
 lemma node22_preserves_members
   (r_up : DeleteUp α)
   (a el: α)
@@ -394,6 +394,7 @@ lemma node22_preserves_members
     cases l <;> grind
 
 omit [LinearOrder α] in
+@[grind]
 lemma node31_preserves_members
   (l_up : DeleteUp α)
   (a b el: α)
@@ -410,6 +411,7 @@ lemma node31_preserves_members
     cases m <;> simp [deleteTree] <;> grind
 
 omit [LinearOrder α] in
+@[grind]
 lemma node32_preserves_members
   (m_up : DeleteUp α)
   (a b el: α)
@@ -423,7 +425,9 @@ lemma node32_preserves_members
     grind
   · cases r <;> simp [setTree, node32] <;> grind
 
+
 omit [LinearOrder α] in
+@[grind]
 lemma node33_preserves_members
   (r_up : DeleteUp α)
   (a b el: α)
@@ -445,51 +449,19 @@ lemma splitMin_preserves_members
   (htn : t ≠ nil)
   (el : α):
     el ∈ {(splitMin t htc htn).1} ∪ setTree (deleteTree (splitMin t htc htn).2) → el ∈ setTree t := by
-  induction t generalizing el with
-  | nil => grind
-  | node2 l a r l_ih r_ih =>
-    simp[splitMin]
-    split
-    · grind
-    · rename_i hnn
-      simp
-      specialize l_ih (by grind  ) (by grind)
-      intro h'
-      cases h'
-      · specialize l_ih el
-        grind
-      · grind[node21_preserves_members]
-  | node3 l a m b r l_ih m_ih r_ih =>
-    simp[splitMin]
-    split
-    · intro h'
-      cases h'
-      · rename_i hn
-        rw [hn]
-        simp[setTree] -- grind does not work, simp does
-      · grind
-    · rename_i hnn
-      intro h'
-      cases h'
-      · rename_i hleft
-        specialize l_ih (by grind) (by grind) el
-        grind
-      · rename_i hright
-        grind[node31_preserves_members]
+  induction t generalizing el <;> grind --grind actually needs generalizing
 
+
+@[grind]
 lemma del_preserves_members (x : α ) (t : Tree23 α) (ht : complete t) (y : α ):
     y ∈ setTree (deleteTree (del x t ht)) → y ∈ setTree t := by
   intro h
   induction t generalizing y with
   | nil => grind
   | node2 l a r l_ih r_ih =>
-    specialize l_ih (by grind  )
-    specialize r_ih (by grind  )
     unfold del at h
     split at h
-    · split at h
-      · grind
-      · grind
+    · grind
     · split at h
       · cases del_eq : (del x l (by grind : complete l))
         · grind
@@ -503,21 +475,15 @@ lemma del_preserves_members (x : α ) (t : Tree23 α) (ht : complete t) (y : α 
                                             (by grind))) := by
             grind
           have: y ∈ setTree (node2 l (splitMin r (by grind) (by grind)).1 r) := by
-            grind[node22_preserves_members]
-          grind
-        · cases del_eq : (del x r (by grind : complete r))
-          · grind
-          · simp [del_eq, deleteTree, node22] at h -- grind needs simp here
             grind
+          grind
+        · grind
   | node3 l a m b r l_ih m_ih r_ih =>
-    specialize l_ih (by grind  )
-    specialize m_ih (by grind  )
-    specialize r_ih (by grind  )
     unfold del at h
     split at h
     · split at h <;> grind
     · split at h
-      · grind[node31_preserves_members]
+      · grind
       · split at h
         · have : y ∈ setTree (deleteTree (node32
                                             l
@@ -527,10 +493,10 @@ lemma del_preserves_members (x : α ) (t : Tree23 α) (ht : complete t) (y : α 
                                             (by grind) (by grind))) := by
             grind
           have: y ∈ setTree (node3 l (splitMin m (by grind) (by grind)).1 m b r) := by
-            grind[node32_preserves_members]
+            grind
           grind
         · split at h
-          · grind[node32_preserves_members]
+          · grind
           · split at h
             · have : y ∈ setTree (deleteTree (node33
                                                 l a m
@@ -539,12 +505,12 @@ lemma del_preserves_members (x : α ) (t : Tree23 α) (ht : complete t) (y : α 
                                                 (by grind) (by grind))) := by
                 grind
               have: y ∈ setTree (node3 l a m (splitMin r (by grind) (by grind)).1 r) := by
-                grind[node33_preserves_members]
+                grind
               grind
-            · grind[node33_preserves_members]
-
+            · grind
 
 -- main part of search tree preserveration
+@[grind]
 lemma searchTree_node21_searchTree (l' : DeleteUp α) (r : Tree23 α) (a : α) (h1: searchTree (deleteTree l')) (h2: searchTree r) (h3: ∀ x ∈ setTree (deleteTree l'), x < a) (h4: ∀ x ∈ setTree r, a < x) (hrn : r ≠ nil):
   searchTree (deleteTree (node21 l' a r hrn)) := by
   induction l' with
@@ -558,7 +524,7 @@ lemma searchTree_node21_searchTree (l' : DeleteUp α) (r : Tree23 α) (a : α) (
       have : a < a' := by grind
       grind
 
-
+@[grind]
 lemma searchTree_node22_searchTree (r': DeleteUp α) (l : Tree23 α) (a : α) (h1: searchTree (deleteTree r')) (h2: searchTree l) (h3: ∀ x ∈ setTree (deleteTree r'), a < x) (h4: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil):
   searchTree (deleteTree (node22 l a r' hln)) := by
   induction r' with
@@ -572,7 +538,7 @@ lemma searchTree_node22_searchTree (r': DeleteUp α) (l : Tree23 α) (a : α) (h
       have : a > b := by grind
       grind
 
-
+@[grind]
 lemma searchTree_node31_searchTree (l' : DeleteUp α) (m : Tree23 α) (r : Tree23 α) (a : α) (b : α) (hsl': searchTree (deleteTree l')) (hsm: searchTree m) (hsr: searchTree r) (hab : a < b) (hl's: ∀ x ∈ setTree (deleteTree l'), x < a) (hms: ∀ x ∈ setTree m, a < x) (hmb: ∀ x ∈ setTree m, x < b) (hrs: ∀ x ∈ setTree r, b < x) (hmn : m ≠ nil) (hrn : r ≠ nil) :
     searchTree (deleteTree (node31 l' a m b r hmn hrn)) := by
   induction l' with
@@ -580,7 +546,7 @@ lemma searchTree_node31_searchTree (l' : DeleteUp α) (m : Tree23 α) (r : Tree2
   | underflow l' =>
     cases m <;> grind
 
-
+@[grind]
 lemma searchTree_node32_searchTree (m' : DeleteUp α) (l : Tree23 α) (r : Tree23 α) (a : α) (b : α) (hsm': searchTree (deleteTree m')) (hsl: searchTree l) (hsr: searchTree r) (hab : a < b) (hm's :  ∀ x ∈ setTree (deleteTree m'), a < x) (hm'b : ∀ x ∈ setTree (deleteTree m'), x < b) (hrs: ∀ x ∈ setTree r, b < x) (hls: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil) (hrn : r ≠ nil) :
     searchTree (deleteTree (node32 l a m' b r hln hrn)) := by
   induction m' with
@@ -595,7 +561,7 @@ lemma searchTree_node32_searchTree (m' : DeleteUp α) (l : Tree23 α) (r : Tree2
           grind
       grind
 
-
+@[grind]
 lemma searchTree_node33_searchTree (r' : DeleteUp α) (l : Tree23 α) (m : Tree23 α) (a : α) (b : α) (hsr': searchTree (deleteTree r')) (hsl: searchTree l) (hsm: searchTree m) (hab : a < b) (hr's: ∀ x ∈ setTree (deleteTree r'), b < x) (hms: ∀ x ∈ setTree m, a < x) (hmb: ∀ x ∈ setTree m, x < b) (hls: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil) (hmn : m ≠ nil) :
     searchTree (deleteTree (node33 l a m b r' hln hmn)) := by
   induction r' with
@@ -604,6 +570,7 @@ lemma searchTree_node33_searchTree (r' : DeleteUp α) (l : Tree23 α) (m : Tree2
     cases m <;> grind
 
 
+@[grind]
 lemma deleteTree_splitMin_preserves_searchTree_2 (t : Tree23 α) (hc : complete t) (hn : t ≠ nil) (hs : searchTree t) :
     (deleteTree (t.splitMin hc hn).2).searchTree := by
   induction t with
@@ -623,12 +590,13 @@ lemma deleteTree_splitMin_preserves_searchTree_2 (t : Tree23 α) (hc : complete 
       specialize l_ih (by grind) h (by grind)
       apply searchTree_node31_searchTree <;> grind
 
+@[grind]
 lemma deleteTree_splitMin_preserves_searchTree_1  (t : Tree23 α) (hc : complete t) (hn : t ≠ nil) (hs : searchTree t) :
      ∀ x ∈ (deleteTree (t.splitMin hc hn).2).setTree, (t.splitMin hc hn).1 < x := by
   induction t with
   | nil => grind
   | node2 l a r l_ih r_ih =>
-    unfold splitMin
+    simp[splitMin]
     split
     · grind
     · expose_names
@@ -665,85 +633,26 @@ lemma deleteTree_splitMin_preserves_searchTree_1  (t : Tree23 α) (hc : complete
         · have : (l.splitMin (by grind) h).1 ∈ l.setTree := by
             grind
           grind
-      · grind[searchTree_node22_searchTree]
+      · grind
 
 -- final proof
 lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
     searchTree t → searchTree (deleteTree (del x t h)) := by
   intro hsT
   induction t with
-  | nil => grind[del]
+  | nil => grind
   | node2 l a r l_ih r_ih =>
-      obtain ⟨ hl, hr, hl', hr' ⟩ := hsT
-      specialize l_ih (by grind) hl'
-      specialize r_ih (by grind) hr'
-      unfold del
+      simp[del]
       split
       · grind
-      · split
-        · expose_names;
-          apply searchTree_node21_searchTree
-          · assumption
-          · assumption
-          · intro x_1 hx
-            have (y : α ) : y ∈ setTree (deleteTree (del x l (by grind))) → y ∈ setTree l := by
-              grind[del_preserves_members]
-            grind
-          · assumption
-        · split
-          · expose_names
-            apply searchTree_node22_searchTree
-            · grind[deleteTree_splitMin_preserves_searchTree_2]
-            · assumption
-            · grind[deleteTree_splitMin_preserves_searchTree_1]
-            · intro x' hx
-              have h1 : (r.splitMin (by grind  ) (by grind  )).1 ∈ r.setTree := by grind
-              grind
-          · expose_names;
-            apply searchTree_node22_searchTree
-            · assumption
-            · assumption
-            · intro x_1 hx
-              have (y : α ) : y ∈ setTree (deleteTree (del x r (by grind))) → y ∈ setTree r := by
-                grind[del_preserves_members]
-              grind
-            · assumption
+      · have (y : α ) : y ∈ setTree (deleteTree (del x l (by grind))) → y ∈ setTree l := by grind
+        have h1 : (r.splitMin (by grind  ) (by grind  )).1 ∈ r.setTree := by grind
+        have (y : α ) : y ∈ setTree (deleteTree (del x r (by grind))) → y ∈ setTree r := by grind
+        grind
   | node3 l a m b r l_ih m_ih r_ih =>
-      obtain ⟨ hab, hl, hma, hmb, hr, hl', hm', hr' ⟩ := hsT
-      specialize l_ih (by grind  ) hl'
-      specialize m_ih (by grind  ) hm'
-      specialize r_ih (by grind  ) hr'
-      unfold del
+      simp[del]
       split
       · grind
-      · split
-        · grind[searchTree_node31_searchTree, del_preserves_members]
-        · split
-          · apply searchTree_node32_searchTree
-            · grind[deleteTree_splitMin_preserves_searchTree_2]
-            · assumption
-            · assumption
-            · grind
-            · grind[deleteTree_splitMin_preserves_searchTree_1]
-            · grind
-            · assumption
-            · have : (m.splitMin (by grind) (by grind  )).1 ∈ m.setTree := by
-                grind
-              grind
-          · split
-            · grind[searchTree_node32_searchTree, del_preserves_members]
-            · split
-              · apply searchTree_node33_searchTree
-                · grind[deleteTree_splitMin_preserves_searchTree_2]
-                · assumption
-                · assumption
-                · have : (r.splitMin (by grind) (by grind  )).1 ∈ r.setTree := by
-                    grind
-                  grind
-                · grind[deleteTree_splitMin_preserves_searchTree_1]
-                · assumption
-                · have : (r.splitMin (by grind) (by grind  )).1 ∈ r.setTree := by
-                    grind
-                  grind
-                · assumption
-              · grind[searchTree_node33_searchTree, del_preserves_members]
+      · have : (m.splitMin (by grind) (by grind  )).1 ∈ m.setTree := by grind
+        have : (r.splitMin (by grind) (by grind  )).1 ∈ r.setTree := by grind
+        grind
