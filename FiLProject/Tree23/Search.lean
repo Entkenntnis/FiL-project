@@ -34,6 +34,7 @@ def searchTree : (t : Tree23 α) → Prop
   (∀ x ∈ (setTree m), x < b) ∧ (∀ x ∈ (setTree r), b < x) ∧
   searchTree l ∧ searchTree m ∧ searchTree r
 
+@[grind! .]
 lemma isin_el_setTree (t: Tree23 α) (x: α) (h: searchTree t):
     isin t x ↔ x ∈ setTree t := by
   induction t <;> grind
