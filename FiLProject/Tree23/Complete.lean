@@ -51,7 +51,7 @@ lemma numNodes_maxt (n : ℕ) :
     numNodes (maxt n) = ((3 ^ n) - 1) / 2 := by
   grind
 
-@[grind! .]
+-- Don't add this lemma to grind globally, because it will explode the search space
 -- grind seems to fail to apply pow_le_pow_right in the suitable moment
 -- this helper unlocks automations
 lemma height_maxt_helper_subhelper (l : Tree23 α) (r : Tree23 α) :
@@ -61,7 +61,7 @@ lemma height_maxt_helper_subhelper (l : Tree23 α) (r : Tree23 α) :
 @[grind! .]
 lemma height_maxt_helper (t : Tree23 α) :
     (numNodes t) * 2 + 1 ≤ 3 ^ (height t) := by
-  induction t <;> grind
+  induction t <;> grind[height_maxt_helper_subhelper]
 
 lemma height_maxt (t : Tree23 α) :
     numNodes t ≤ (3 ^ (height t) - 1) / 2 := by
