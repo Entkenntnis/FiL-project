@@ -1,5 +1,5 @@
 import Mathlib.Tactic
-set_option profiler true
+-- set_option profiler true
 
 inductive Tree23 (α : Type u)
 | nil

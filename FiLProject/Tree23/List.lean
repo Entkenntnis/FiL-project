@@ -1,4 +1,3 @@
-
 import FiLProject.Tree23.Complete
 
 inductive Tree23s (α : Type u)
