@@ -26,6 +26,7 @@ lemma height_numNodes_log (t : Tree23 α) (ht : complete t):
 
 variable [LinearOrder α]
 
+@[grind]
 def T_insert : α → Tree23 α → ℕ
 | _, nil => 1
 | x, node2 l a r => if x = a then 1
@@ -41,10 +42,7 @@ def T_insert : α → Tree23 α → ℕ
 
 lemma runtime_height_insert (x : α) (t : Tree23 α) :
     T_insert x t ≤ height t + 1 := by
-  induction t with
-  | nil => simp[T_insert]
-  | node2 l a r l_ih r_ih => grind[T_insert]
-  | node3 l a m b r l_ih m_ih r_ih => grind[T_insert]
+  induction t <;> grind
 
 
 lemma insertion_time_approx (x : α) (t : Tree23 α) (ht: complete t) :
@@ -60,7 +58,7 @@ lemma insertion_time_approx (x : α) (t : Tree23 α) (ht: complete t) :
 
 abbrev CompleteTree (α : Type u) := { t : Tree23 α // complete t }
 
-def sizeAtTop : Filter (CompleteTree α) := -- why do we need a filter?
+def sizeAtTop : Filter (CompleteTree α) :=
   Filter.atTop.comap (fun t ↦ numNodes t.val)
 
 -- T_insert ∈ O(logn)
@@ -108,7 +106,7 @@ theorem T_insert_is_log_n (x : α) :
 
 ----delete
 
-
+@[grind]
 def T_splitMin : Tree23 α → ℕ
 | nil => 0
 | node2 l _ _ =>
@@ -120,7 +118,7 @@ def T_splitMin : Tree23 α → ℕ
   else
     T_splitMin l + 1
 
-
+@[grind]
 def T_delete : α → Tree23 α → ℕ
 | _, nil => 0
 | x, node2 l a r =>
@@ -147,19 +145,14 @@ def T_delete : α → Tree23 α → ℕ
       else
         (T_delete x r) + 1
 
+@[grind! .]
 lemma runtime_height_splitMin (t : Tree23 α) :
     T_splitMin t ≤ height t := by
-  induction t with
-  | nil => simp[T_splitMin]
-  | node2 l a r l_ih r_ih => grind[T_splitMin]
-  | node3 l a m b r l_ih m_ih r_ih => grind[T_splitMin]
+  induction t <;> grind
 
 lemma runtime_height_delete (x : α) (t : Tree23 α) (h : complete t):
     T_delete x t ≤ height t + 1 := by
-  induction t with
-  | nil => simp[T_delete]
-  | node2 l a r l_ih r_ih => grind[runtime_height_splitMin, complete, T_delete]
-  | node3 l a m b r l_ih m_ih r_ih => grind[runtime_height_splitMin, complete, T_delete]
+  induction t <;> grind
 
 lemma deletion_time_approx (x : α) (t : Tree23 α) (ht: complete t) :
     T_delete x t ≤ (Real.log 2)⁻¹ * Real.log (2 * numNodes t + 2) := by
