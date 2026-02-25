@@ -503,7 +503,7 @@ lemma del_preserves_members (x : α ) (t : Tree23 α) (ht : complete t) (y : α 
             · grind
 
 -- main part of search tree preserveration
-@[grind]
+@[grind! .]
 lemma searchTree_node21_searchTree (l' : DeleteUp α) (r : Tree23 α) (a : α) (h1: searchTree (deleteTree l')) (h2: searchTree r) (h3: ∀ x ∈ setTree (deleteTree l'), x < a) (h4: ∀ x ∈ setTree r, a < x) (hrn : r ≠ nil):
   searchTree (deleteTree (node21 l' a r hrn)) := by
   induction l' with
@@ -517,7 +517,7 @@ lemma searchTree_node21_searchTree (l' : DeleteUp α) (r : Tree23 α) (a : α) (
       have : a < a' := by grind
       grind
 
-@[grind]
+@[grind! .]
 lemma searchTree_node22_searchTree (r': DeleteUp α) (l : Tree23 α) (a : α) (h1: searchTree (deleteTree r')) (h2: searchTree l) (h3: ∀ x ∈ setTree (deleteTree r'), a < x) (h4: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil):
   searchTree (deleteTree (node22 l a r' hln)) := by
   induction r' with
@@ -531,7 +531,7 @@ lemma searchTree_node22_searchTree (r': DeleteUp α) (l : Tree23 α) (a : α) (h
       have : a > b := by grind
       grind
 
-@[grind]
+@[grind! .]
 lemma searchTree_node31_searchTree (l' : DeleteUp α) (m : Tree23 α) (r : Tree23 α) (a : α) (b : α) (hsl': searchTree (deleteTree l')) (hsm: searchTree m) (hsr: searchTree r) (hab : a < b) (hl's: ∀ x ∈ setTree (deleteTree l'), x < a) (hms: ∀ x ∈ setTree m, a < x) (hmb: ∀ x ∈ setTree m, x < b) (hrs: ∀ x ∈ setTree r, b < x) (hmn : m ≠ nil) (hrn : r ≠ nil) :
     searchTree (deleteTree (node31 l' a m b r hmn hrn)) := by
   induction l' with
@@ -539,7 +539,7 @@ lemma searchTree_node31_searchTree (l' : DeleteUp α) (m : Tree23 α) (r : Tree2
   | underflow l' =>
     cases m <;> grind
 
-@[grind]
+@[grind! .]
 lemma searchTree_node32_searchTree (m' : DeleteUp α) (l : Tree23 α) (r : Tree23 α) (a : α) (b : α) (hsm': searchTree (deleteTree m')) (hsl: searchTree l) (hsr: searchTree r) (hab : a < b) (hm's :  ∀ x ∈ setTree (deleteTree m'), a < x) (hm'b : ∀ x ∈ setTree (deleteTree m'), x < b) (hrs: ∀ x ∈ setTree r, b < x) (hls: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil) (hrn : r ≠ nil) :
     searchTree (deleteTree (node32 l a m' b r hln hrn)) := by
   induction m' with
@@ -554,7 +554,7 @@ lemma searchTree_node32_searchTree (m' : DeleteUp α) (l : Tree23 α) (r : Tree2
           grind
       grind
 
-@[grind]
+@[grind! .]
 lemma searchTree_node33_searchTree (r' : DeleteUp α) (l : Tree23 α) (m : Tree23 α) (a : α) (b : α) (hsr': searchTree (deleteTree r')) (hsl: searchTree l) (hsm: searchTree m) (hab : a < b) (hr's: ∀ x ∈ setTree (deleteTree r'), b < x) (hms: ∀ x ∈ setTree m, a < x) (hmb: ∀ x ∈ setTree m, x < b) (hls: ∀ x ∈ setTree l, x < a) (hln : l ≠ nil) (hmn : m ≠ nil) :
     searchTree (deleteTree (node33 l a m b r' hln hmn)) := by
   induction r' with
@@ -563,7 +563,7 @@ lemma searchTree_node33_searchTree (r' : DeleteUp α) (l : Tree23 α) (m : Tree2
     cases m <;> grind
 
 
-@[grind]
+@[grind! .]
 lemma deleteTree_splitMin_preserves_searchTree_2 (t : Tree23 α) (hc : complete t) (hn : t ≠ nil) (hs : searchTree t) :
     (deleteTree (t.splitMin hc hn).2).searchTree := by
   induction t with
@@ -583,7 +583,7 @@ lemma deleteTree_splitMin_preserves_searchTree_2 (t : Tree23 α) (hc : complete 
       specialize l_ih (by grind) h (by grind)
       apply searchTree_node31_searchTree <;> grind
 
-@[grind]
+@[grind! .]
 lemma deleteTree_splitMin_preserves_searchTree_1  (t : Tree23 α) (hc : complete t) (hn : t ≠ nil) (hs : searchTree t) :
      ∀ x ∈ (deleteTree (t.splitMin hc hn).2).setTree, (t.splitMin hc hn).1 < x := by
   induction t with
