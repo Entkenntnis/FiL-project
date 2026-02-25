@@ -300,31 +300,26 @@ lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
     · split
       · grind[max_height_node21]
       · split
-        · expose_names
-          rw[max_height_node22]
-          · have hr: r ≠ nil := by grind[height]
-            have : deleteHeight (splitMin r (by grind  ) hr).2 = height r := by
+        · rw[max_height_node22]
+          have hr: r ≠ nil := by grind[height]
+          have : deleteHeight (splitMin r (by grind  ) hr).2 = height r := by
               rw[splitMin_height_complete]
               grind
-            grind
-          · grind
+          repeat grind
         · grind[max_height_node22]
   | node3 l a m b r l_ih m_ih r_ih =>
     unfold del
-    -- aesop (add norm [deleteHeight, complete, splitMin, splitMin_height_complete, max_height_node31, max_height_node32, max_height_node33] )
     split
     · grind
     · split
       · grind[max_height_node31]
       · split
         · rw[max_height_node32]
-          · have hm : m ≠ nil := by grind
-            have : deleteHeight (splitMin m (by grind) hm).2 = height m := by
-              rw[splitMin_height_complete]
-              grind
+          have hm : m ≠ nil := by grind
+          have : deleteHeight (splitMin m (by grind) hm).2 = height m := by
+            rw[splitMin_height_complete]
             grind
-          · grind
-          · grind
+          repeat grind
         · split
           · grind[max_height_node32]
           · split
@@ -333,9 +328,7 @@ lemma complete_deleteHeight (t : Tree23 α) (x : α) (h : complete t):
               have : deleteHeight (splitMin r (by grind  ) hr).2 = height r := by
                 rw[splitMin_height_complete]
                 grind
-              grind
-              · grind
-              · grind
+              repeat grind
             · grind[max_height_node33]
 
 
@@ -620,19 +613,9 @@ lemma deleteTree_splitMin_preserves_searchTree_1  (t : Tree23 α) (hc : complete
       apply node31_preserves_members (l := (deleteTree ((l.splitMin (by grind) h).2)) ) at hx
       · unfold setTree at hx
         simp at hx
-        obtain h1 | h2 := hx
-        · obtain h2 | h3 := h1
-          · have : (l.splitMin (by grind) h).1 ∈ l.setTree := by
+        have : (l.splitMin (by grind) h).1 ∈ l.setTree := by
               grind
-            grind
-          · obtain h3 | h4 := h3
-            · obtain h3 | h5 := h3 <;> grind
-            · have : (l.splitMin (by grind) h).1 ∈ l.setTree := by
-                grind
-              grind
-        · have : (l.splitMin (by grind) h).1 ∈ l.setTree := by
-            grind
-          grind
+        grind
       · grind
 
 -- final proof
