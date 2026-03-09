@@ -451,7 +451,9 @@ lemma splitMin_el_setTree (t: Tree23 α) (hc: complete t) (hn : t ≠ nil):
 
 
 
-@[grind]
+
+
+@[grind! .]
 lemma del_preserves_members (x : α ) (t : Tree23 α) (ht : complete t) (y : α ):
     y ∈ setTree (deleteTree (del x t ht)) → y ∈ setTree t := by
   intro h
@@ -603,13 +605,7 @@ lemma deleteTree_splitMin_preserves_searchTree_1  (t : Tree23 α) (hc : complete
       simp
       intro x hx
       apply node21_preserves_members (l := (deleteTree ((l.splitMin (by grind) h).2)) ) at hx
-      · simp at hx
-        obtain h1 | h2 := hx
-        · obtain h2 | h3 := h1 <;> grind
-        · have : (l.splitMin (by grind) h).1 ∈ l.setTree := by
-            grind
-          grind
-      · grind
+      <;> grind
   | node3 l a m b r l_ih m_ih r_ih =>
     simp[splitMin]
     split
