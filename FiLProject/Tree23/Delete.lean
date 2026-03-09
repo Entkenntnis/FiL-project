@@ -352,7 +352,7 @@ lemma delete_completeness_preservation (t : Tree23 α) (x : α) (h : complete t)
 
 -- first prove a helper
 omit [LinearOrder α] in
-@[grind]
+@[grind! .]
 lemma node21_preserves_members
   (l_up : DeleteUp α)
   (a el: α)
@@ -373,7 +373,7 @@ lemma node21_preserves_members
 
 
 omit [LinearOrder α] in
-@[grind]
+@[grind! .]
 lemma node22_preserves_members
   (r_up : DeleteUp α)
   (a el: α)
@@ -387,7 +387,7 @@ lemma node22_preserves_members
     cases l <;> grind
 
 omit [LinearOrder α] in
-@[grind]
+@[grind! .]
 lemma node31_preserves_members
   (l_up : DeleteUp α)
   (a b el: α)
@@ -404,7 +404,7 @@ lemma node31_preserves_members
     cases m <;> simp [deleteTree] <;> grind
 
 omit [LinearOrder α] in
-@[grind]
+@[grind! .]
 lemma node32_preserves_members
   (m_up : DeleteUp α)
   (a b el: α)
@@ -420,7 +420,7 @@ lemma node32_preserves_members
 
 
 omit [LinearOrder α] in
-@[grind]
+@[grind! .]
 lemma node33_preserves_members
   (r_up : DeleteUp α)
   (a b el: α)
@@ -435,7 +435,7 @@ lemma node33_preserves_members
   · simp[node33]
     cases m <;> grind
 
-@[grind]
+@[grind! .]
 lemma splitMin_preserves_members
   (t: Tree23 α)
   (htc : complete t)
@@ -443,6 +443,12 @@ lemma splitMin_preserves_members
   (el : α):
     el ∈ {(splitMin t htc htn).1} ∪ setTree (deleteTree (splitMin t htc htn).2) → el ∈ setTree t := by
   induction t generalizing el <;> grind --grind actually needs generalizing
+
+@[grind! .]
+lemma splitMin_el_setTree (t: Tree23 α) (hc: complete t) (hn : t ≠ nil):
+    (t.splitMin hc hn).1 ∈ t.setTree := by
+  grind
+
 
 
 @[grind]
@@ -583,6 +589,7 @@ lemma deleteTree_splitMin_preserves_searchTree_2 (t : Tree23 α) (hc : complete 
       specialize l_ih (by grind) h (by grind)
       apply searchTree_node31_searchTree <;> grind
 
+
 @[grind! .]
 lemma deleteTree_splitMin_preserves_searchTree_1  (t : Tree23 α) (hc : complete t) (hn : t ≠ nil) (hs : searchTree t) :
      ∀ x ∈ (deleteTree (t.splitMin hc hn).2).setTree, (t.splitMin hc hn).1 < x := by
@@ -613,16 +620,10 @@ lemma deleteTree_splitMin_preserves_searchTree_1  (t : Tree23 α) (hc : complete
       apply node31_preserves_members (l := (deleteTree ((l.splitMin (by grind) h).2)) ) at hx
       · unfold setTree at hx
         simp at hx
-        have : (l.splitMin (by grind) h).1 ∈ l.setTree := by
-              grind
         grind
       · grind
 
 
-@[grind! .]
-lemma splitMin_el_setTree (t: Tree23 α) (hc: complete t) (hn : t ≠ nil):
-    (t.splitMin hc hn).1 ∈ t.setTree := by
-  grind
 
 -- final proof
 lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
