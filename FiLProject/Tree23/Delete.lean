@@ -618,24 +618,14 @@ lemma deleteTree_splitMin_preserves_searchTree_1  (t : Tree23 α) (hc : complete
         grind
       · grind
 
+
+@[grind! .]
+lemma splitMin_el_setTree (t: Tree23 α) (hc: complete t) (hn : t ≠ nil):
+    (t.splitMin hc hn).1 ∈ t.setTree := by
+  grind
+
 -- final proof
 lemma searchTree_del_searchTree (t: Tree23 α) (x: α) (h: complete t):
     searchTree t → searchTree (deleteTree (del x t h)) := by
   intro hsT
-  induction t with
-  | nil => grind
-  | node2 l a r l_ih r_ih =>
-      simp[del]
-      split
-      · grind
-      · have (y : α ) : y ∈ setTree (deleteTree (del x l (by grind))) → y ∈ setTree l := by grind
-        have h1 : (r.splitMin (by grind  ) (by grind  )).1 ∈ r.setTree := by grind
-        have (y : α ) : y ∈ setTree (deleteTree (del x r (by grind))) → y ∈ setTree r := by grind
-        grind
-  | node3 l a m b r l_ih m_ih r_ih =>
-      simp[del]
-      split
-      · grind
-      · have : (m.splitMin (by grind) (by grind  )).1 ∈ m.setTree := by grind
-        have : (r.splitMin (by grind) (by grind  )).1 ∈ r.setTree := by grind
-        grind
+  induction t <;> grind
